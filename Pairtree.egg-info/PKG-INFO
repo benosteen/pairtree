@@ -1,8 +1,8 @@
 Metadata-Version: 1.0
 Name: Pairtree
-Version: 0.1.1
+Version: 0.2.2
 Summary: Pairtree FS implementation.
-Home-page: UNKNOWN
+Home-page: http://packages.python.org/Pairtree/
 Author: Ben O'Steen
 Author-email: bosteen@gmail.com
 License: http://www.apache.org/licenses/LICENSE-2.0

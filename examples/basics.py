@@ -43,4 +43,15 @@ fn.close()
 # but put it into a 'data/mine' directory
 foobar.add_file('/tmp/foo.txt', 'data/mine')
 
+# create a new object to test 'split-end' handling
+foobartoo = store.create_object('foobartoo')
+foobartoo.add_bytestream('foomanchu.txt', 'Nothing to see here. Move along')
+
+# Results should be mostly unchanged from before
+# with the only addition being the data directory
+print foobar.list_parts()
+
+# Results should just be foomanchu.txt
+print foobartoo.list_parts()
+
 

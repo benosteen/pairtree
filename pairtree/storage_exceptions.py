@@ -1,7 +1,7 @@
 class ObjectNotFoundException(Exception):
     """Object not found at the ID specified"""
     pass
-    
+
 class FileNotFoundException(Exception):
     """File cannot be found at the location requested"""
     pass
@@ -20,16 +20,20 @@ class StoreNotFoundException(Exception):
 class ObjectAlreadyExistsException(Exception):
     """Object ID already exists"""
     pass
-    
+
 class StoreAlreadyExistsException(Exception):
     """Store ID already exists"""
     pass
-    
+
+class PathIsNotEmptyException(Exception):
+    """Cannot remove a path that isn't empty without the recursive flag set'"""
+    pass
+
 class NotAPairtreeStoreException(Exception):
-    """The directory indicated exists, but doesn't 
+    """The directory indicated exists, but doesn't
     announce itself to be a pairtree store via a
     'pairtree_version0_1' marker file in the root."""
-    
+
 class NotAValidStoreName(Exception):
     """Invalid name for a store. Must conform to ^[A-z][A-z0-9]* regex"""
 

@@ -123,21 +123,34 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A string of the encoded identifier
         """
-        multichar_mapping = {'"':'^22',
-                             '<':'^3c',
-                             '?':'^3f',
-                             '*':'^2a',
-                             '=':'^3d',
-                             '^':'^5e',
-                             '+':'^2b',
-                             '>':'^3e',
-                             '|':'^7c',
-                             ',':'^2c'
+        multichar_mapping = {u'"':u'^22',
+                             u'<':u'^3c',
+                             u'?':u'^3f',
+                             u'*':u'^2a',
+                             u'=':u'^3d',
+                             u'^':u'^5e',
+                             u'+':u'^2b',
+                             u'>':u'^3e',
+                             u'|':u'^7c',
+                             u',':u'^2c'
                             }
+        second_pass_m = {u'/':u'=',
+                         u':':u'+',
+                         u'.':u','
+                        }
         new_id = []
         for char in id:
             new_id.append(multichar_mapping.get(char, char))
-        return "".join(new_id).translate(string.maketrans('/:.','=+,'))
+        # 2nd pass
+        # Ditched using .translate and string.maketrans due to weird and
+        # odd errors
+        second_pass = []
+        for char in u"".join(new_id):
+            second_pass.append(second_pass_m.get(char, char))
+        return u"".join(second_pass)
+        #        m = string.maketrans(u'/:.',u'=+,')
+        #        return foo.translate(m)
+        # return "".join(new_id).translate(string.maketrans('/:.','=+,'))
 
     def id_decode(self, id):
         """
@@ -147,21 +160,20 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A string of the decoded identifier
         """
-        multichar_mapping = {'22':'"',
-                             '3c':'<',
-                             '3f':'?',
-                             '2a':'*',
-                             '3d':'=',
-                             '5e':'^',
-                             '2b':'+',
-                             '3e':'>',
-                             '7c':'|',
-                             '2c':','
+        multichar_mapping = {u'22':u'"',
+                             u'3c':u'<',
+                             u'3f':u'?',
+                             u'2a':u'*',
+                             u'3d':u'=',
+                             u'5e':u'^',
+                             u'2b':u'+',
+                             u'3e':u'>',
+                             u'7c':u'|',
+                             u'2c':u','
                             }
-        dec_id = id.translate(string.maketrans('=+,','/:.'))
+        dec_id = id.translate(string.maketrans(u'=+,',u'/:.'))
         index = 0
         new_id = []
-        print len(dec_id)
         while index < len(dec_id):
             if dec_id[index] == '^':
                 code = "".join(dec_id[index+1:index+3]).lower()
@@ -325,7 +337,7 @@ class PairtreeStorageClient(object):
             raise ObjectAlreadyExistsException
         return PairtreeStorageObject(id, self)
 
-    def list_parts(self, id, path):
+    def list_parts(self, id, path=None):
         """
         List all the parts of the given identifer's parts (excluding shortie directories
         belonging to other objects)
@@ -389,7 +401,7 @@ class PairtreeStorageClient(object):
         finally:
             f.close()
 
-    def get_stream(self, id, path, stream_name, streamable=True):
+    def get_stream(self, id, path, stream_name, streamable=False):
         """
         Reads a file from a pairtree object - If streamable is set to True,
         this returns the filehandle for that file, which must be C{close()}'d

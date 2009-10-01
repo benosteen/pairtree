@@ -54,4 +54,9 @@ print foobar.list_parts()
 # Results should just be foomanchu.txt
 print foobartoo.list_parts()
 
+# create a new object to test recursive path deletion
+# in objects
+foobarthree = store.create_object('foobarthree')
+
+store.delete_object('foobarthree')
 

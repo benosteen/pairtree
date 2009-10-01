@@ -217,6 +217,8 @@ class PairtreeStorageClient(object):
         path.reverse()
         return path
 
+
+
     def _id_to_dirpath(self, id):
         """
         Internal - method for turning an identifier into a pairtree directory tree
@@ -228,10 +230,24 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A directory path to the object's root directory
         """
+        return os.sep.join(self._id_to_dir_list(id))
+
+
+    def _id_to_dir_list(self, id):
+        """
+        Internal - method for turning an identifier into a list of pairtree 
+        directory tree of shorties.
+
+            -  I{"foobar://ark.1" --> ["fo","ob","ar","+=","ar","k,","1"]}
+
+        @param id: Identifer for a pairtree object
+        @type id: identifier
+        @returns: A list of directory path fragments to the object's root directory
+        """
         enc_id = self.id_encode(id)
-        dirpath = self.pairtree_root
+        dirpath = [self.pairtree_root]
         while enc_id:
-            dirpath = os.path.join(dirpath, enc_id[:self.shorty_length])
+            dirpath.append(enc_id[:self.shorty_length])
             enc_id = enc_id[self.shorty_length:]
         return dirpath
 
@@ -330,7 +346,7 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: L{PairtreeStorageObject}
         """
-        dirpath = self._id_to_dirpath(id)
+        dirpath = os.path.join(self._id_to_dirpath(id))
         if not os.path.exists(dirpath):
             os.makedirs(dirpath)
         else:
@@ -456,6 +472,17 @@ class PairtreeStorageClient(object):
         os.remove(file_path)
 
     def del_path(self, id, path, recursive=False):
+        """
+        Delete a subpath from an object, and can do so recursively (optional)
+        If the path is found to be not "empty" (ie has not parts in it) and
+        recursive is not True, then it will raise a L{PathIsNotEmptyException}
+        @param id: Identifier for the pairtree object to delete from
+        @type id: identifier
+        @param path: subdirectory path to delete
+        @type path: Directory path
+        @param recursive: Whether the delete is recursive (think rm -r)
+        @type recursive: bool
+        """
         dirpath = os.path.join(self._id_to_dirpath(id), path)
         if not os.path.exists(dirpath):
             raise PartNotFoundException
@@ -481,13 +508,25 @@ class PairtreeStorageClient(object):
                 raise PathIsNotEmptyException
 
     def delete_object(self, id):
-        dirpath = os.path.join(self._id_to_dirpath(id))
+        """
+        Delete's an object from the pairtree store, including any parts and subpaths
+        There is no undo...
+        @param id: Identifier of the object to delete
+        @type id: identifier
+        """
+        dirs = self._id_to_dir_list(id)
+        dirpath = os.path.join(os.sep.join(dirs))
         if not os.path.exists(dirpath):
             raise ObjectNotFoundException
         for item in self.list_parts(id):
             self.del_path(id,item, recursive=True)
         if not os.listdir(dirpath):
             os.rmdir(dirpath)
+        # recursively delete up, if the directory is empty
+        leaf = dirs.pop()
+        while (not os.listdir(os.sep.join(dirs)) and os.sep.join(dirs) != self.pairtree_root):
+            os.rmdir(os.sep.join(dirs))
+            dirs.pop()
 
     def exists(self, id, path=None):
         """

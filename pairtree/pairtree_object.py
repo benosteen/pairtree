@@ -227,8 +227,8 @@ class PairtreeStorageObject(object):
                 _, new_filename = os.path.split(from_file_location)
             fh = open(from_file_location, 'rb')
             if buffer_size:
-                self.fs.put_stream(self.id, path, new_filename, bytestream=fh, buffer_size=buffer_size)
-            self.fs.put_stream(self.id, path, new_filename, bytestream=fh)
+                return self.fs.put_stream(self.id, path, new_filename, bytestream=fh, buffer_size=buffer_size)
+            return self.fs.put_stream(self.id, path, new_filename, bytestream=fh)
             fh.close()
         else:
             raise FileNotFoundException

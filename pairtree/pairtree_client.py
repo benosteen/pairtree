@@ -31,6 +31,8 @@ from storage_exceptions import *
 
 from pairtree_object import PairtreeStorageObject
 
+import hashlib
+
 class PairtreeStorageClient(object):
     """A client that oversees the implementation of the Pairtree FS specification
     version 0.1.
@@ -59,7 +61,7 @@ class PairtreeStorageClient(object):
     Also, if you try to create a store over a directory that already exists, but which isn't
     a pairtree store that it can recognise, it will raise a L{NotAPairtreeStoreException}.
     """
-    def __init__(self, uri_base, store_dir, shorty_length):
+    def __init__(self, uri_base, store_dir, shorty_length, hashing_type=None):
         """
         Constructor
         @param store_dir: The file directory where the pairtree store is
@@ -68,6 +70,8 @@ class PairtreeStorageClient(object):
         @type uri_base: A URI fragment, like "http://example.org/"
         @param shorty_length: The size of the shorties in the pairtree implementation (Default: 2)
         @type shorty_length: integer
+        @param hashing_type: The name of the algorithm to use when hashing files, if left as None, this is disabled.
+        @type hashing_type: Any supported by C{hashlib}
         """
         self.store_dir = store_dir
         self.pairtree_root = os.path.join(self.store_dir, 'pairtree_root')
@@ -75,6 +79,7 @@ class PairtreeStorageClient(object):
         if uri_base:
             self.uri_base = uri_base
         self.shorty_length = shorty_length
+        self.hashing_type = hashing_type
         self._init_store()
 
     def id_encode(self, id):
@@ -396,6 +401,7 @@ class PairtreeStorageClient(object):
         @param buffer_size: (Optional) Used for streaming filelike objects - defines the size of the buffer
         to read in each cycle.
         @type buffer_size: integer
+        @returns: tuple C{(hashing_algorithm, hash)} or None if hashing is disabled
         """
         dirpath = os.path.join(self._id_to_dirpath(id))
         if path:
@@ -403,6 +409,8 @@ class PairtreeStorageClient(object):
         if not os.path.exists(dirpath):
             os.makedirs(dirpath)
         f = open(os.path.join(dirpath, stream_name), "wb")
+        if self.hashing_type != None:
+            hash_gen = getattr(hashlib, self.hashing_type)()
         try:
             # Stream file-like objects in with buffered reads
             if hasattr(bytestream, 'read'):
@@ -411,11 +419,18 @@ class PairtreeStorageClient(object):
                 chunk = bytestream.read(buffer_size)
                 while chunk:
                     f.write(chunk)
+                    if self.hashing_type != None:
+                        hash_gen.update(chunk)
                     chunk = bytestream.read(buffer_size)
             else:
                 f.write(bytestream)
+                if self.hashing_type != None:
+                    hash_gen.update(bytestream)
         finally:
             f.close()
+        
+        if self.hashing_type != None:
+            return (self.hashing_type, hash_gen.hexdigest())
 
     def get_stream(self, id, path, stream_name, streamable=False):
         """

@@ -5,7 +5,7 @@ f = PairtreeStorageFactory()
 
 # For a new store it is very important to set uri_base
 # This restriction can be relaxed if necessary
-store = f.get_store(store_dir="data", uri_base="info:local/", shorty_length=2)
+store = f.get_store(store_dir="data", uri_base="info:local/", shorty_length=2, hashing_type='md5')
 
 # Creates a directory in the cwd called 'data' and adds some pairtree boilerplate
 # files
@@ -14,11 +14,13 @@ store = f.get_store(store_dir="data", uri_base="info:local/", shorty_length=2)
 # exists
 # Use get_object if you do not care whether it existed on disc and just want a
 # object to write and read from.
-foobar = store.create_object('foobar')
+foobar = store.get_object('foobar')
 # foobar = store.get_object('foobar')
 
 # Add a byte sequence
-foobar.add_bytestream('foobar.txt', """Can just be an in memory string of bytes""")
+md5hash = foobar.add_bytestream('foobar.txt', """Can just be an in memory string of bytes""")
+
+print "%s hash of foobar.txt = %s" % (md5hash)
 
 # Faking a file handle to a large file we'd rather streamed than copy into
 # memory
@@ -30,7 +32,9 @@ handle_to_large_file.seek(0)
 
 # Store the large file in the root of the pairtree object and
 # call it 'large_file.txt'
-foobar.add_bytestream('large_file.txt', handle_to_large_file)
+md5hash = foobar.add_bytestream('large_file.txt', handle_to_large_file)
+
+print "%s hash of large file = %s" % (md5hash)
 
 print foobar.list_parts()
 
@@ -41,11 +45,11 @@ fn.close()
 
 # stream file from on disc location into the pairtree object
 # but put it into a 'data/mine' directory
-foobar.add_file('/tmp/foo.txt', 'data/mine')
+print "%s file hash = %s" % (foobar.add_file('/tmp/foo.txt', 'data/mine'))
 
 # create a new object to test 'split-end' handling
 foobartoo = store.create_object('foobartoo')
-foobartoo.add_bytestream('foomanchu.txt', 'Nothing to see here. Move along')
+print "foomanchu.txt - %s: %s" % (foobartoo.add_bytestream('foomanchu.txt', 'Nothing to see here. Move along'))
 
 # Results should be mostly unchanged from before
 # with the only addition being the data directory

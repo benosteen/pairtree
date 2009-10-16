@@ -27,6 +27,8 @@ import codecs
 
 import string
 
+import re
+
 from storage_exceptions import *
 
 from pairtree_object import PairtreeStorageObject
@@ -80,7 +82,17 @@ class PairtreeStorageClient(object):
             self.uri_base = uri_base
         self.shorty_length = shorty_length
         self.hashing_type = hashing_type
+        # regexes
+        self._encode = re.compile(r"[\"*+,<=>?\\^|]|[^\x21-\x7e]", re.U)
+        self._decode = re.compile(r"\^(..)", re.U)
+        
         self._init_store()
+
+    def __char2hex(self, m):
+        return "^%02x"%ord(m.group(0))
+
+    def __hex2char(self, m):
+        return chr(int(m.group(1), 16))
 
     def id_encode(self, id):
         """
@@ -128,34 +140,28 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A string of the encoded identifier
         """
-        multichar_mapping = {u'"':u'^22',
-                             u'<':u'^3c',
-                             u'?':u'^3f',
-                             u'*':u'^2a',
-                             u'=':u'^3d',
-                             u'^':u'^5e',
-                             u'+':u'^2b',
-                             u'>':u'^3e',
-                             u'|':u'^7c',
-                             u',':u'^2c'
-                            }
-        second_pass_m = {u'/':u'=',
-                         u':':u'+',
-                         u'.':u','
+        # Unicode or bust
+        if isinstance(id, unicode):
+            # assume utf-8
+            # TODO - not assume encoding
+            id = id.encode('utf-8')
+
+        second_pass_m = {'/':'=',
+                         ':':'+',
+                         '.':','
                         }
-        new_id = []
-        for char in id:
-            new_id.append(multichar_mapping.get(char, char))
+        # hexify the odd characters
+        # Using Erik Hetzner's regex in place of my previous hack
+        #new_id = re.sub(r"[\"*+,<=>?\\^|]|[^\x21-\x7e]", self.__char2hex, id)
+        new_id = self._encode.sub(self.__char2hex, id)
+        
         # 2nd pass
         # Ditched using .translate and string.maketrans due to weird and
         # odd errors
         second_pass = []
-        for char in u"".join(new_id):
+        for char in new_id:
             second_pass.append(second_pass_m.get(char, char))
-        return u"".join(second_pass)
-        #        m = string.maketrans(u'/:.',u'=+,')
-        #        return foo.translate(m)
-        # return "".join(new_id).translate(string.maketrans('/:.','=+,'))
+        return "".join(second_pass)
 
     def id_decode(self, id):
         """
@@ -165,32 +171,20 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A string of the decoded identifier
         """
-        multichar_mapping = {u'22':u'"',
-                             u'3c':u'<',
-                             u'3f':u'?',
-                             u'2a':u'*',
-                             u'3d':u'=',
-                             u'5e':u'^',
-                             u'2b':u'+',
-                             u'3e':u'>',
-                             u'7c':u'|',
-                             u'2c':u','
-                            }
-        dec_id = id.translate(string.maketrans(u'=+,',u'/:.'))
-        index = 0
-        new_id = []
-        while index < len(dec_id):
-            if dec_id[index] == '^':
-                code = "".join(dec_id[index+1:index+3]).lower()
-                if code in multichar_mapping:
-                    new_id.append(multichar_mapping[code])
-                    index = index + 2
-                else:
-                    raise Exception("Unknown character code found.")
-            else:
-                new_id.append(dec_id[index])
-            index = index +1
-        return "".join(new_id)
+        second_pass_m = {'=':'/',
+                         '+':':',
+                         ',':'.'
+                        }
+        second_pass = []
+        for char in id:
+            second_pass.append(second_pass_m.get(char, char))
+        dec_id = "".join(second_pass)
+        #dec_id = id.translate(string.maketrans(u'=+,',u'/:.'))
+        # Using Erik Hetzner's regex in place of my previous hack
+        #ppath_s = re.sub(r"\^(..)", self.__hex2char, dec_id)
+        ppath_s = self._decode.sub(self.__hex2char, dec_id)
+        # Again, drop the assumption of utf-8
+        return ppath_s.decode('utf-8')
 
     def _get_id_from_dirpath(self, dirpath):
         """

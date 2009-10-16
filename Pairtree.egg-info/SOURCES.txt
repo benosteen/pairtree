@@ -11,3 +11,5 @@ pairtree/pairtree_client.py
 pairtree/pairtree_object.py
 pairtree/pairtree_store.py
 pairtree/storage_exceptions.py
+tests/__init__.py
+tests/test.py

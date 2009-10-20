@@ -61,6 +61,8 @@ if __name__ == '__main__':
         root = []
         while len(tokens[0]) > 2:
             root.append(tokens.pop(0))
+            if len(tokens) == 0:
+                sys.exit("Couldn't recoginise a pairtree encoded path in the parameter")
         index = 0
         while index < len(tokens):
             part = tokens[index]
@@ -75,8 +77,9 @@ if __name__ == '__main__':
             else:
                 break
         ident = id_decode("".join(id_parts))
-        if root:
-            ident = j(*root, ident)
+#        if root:
+#            root = j(*root)
+#            ident = j(root, ident)
         remnants = tokens[index:]
         if remnants:
             ident = j(ident, *remnants)

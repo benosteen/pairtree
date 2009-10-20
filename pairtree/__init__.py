@@ -170,5 +170,6 @@ __version__ = '0.2.2'
 from pairtree_client import *
 from pairtree_store import *
 from pairtree_object import *
+from pairtree_path import *
 from storage_exceptions import *
 

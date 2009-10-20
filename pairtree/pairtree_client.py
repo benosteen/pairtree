@@ -33,6 +33,8 @@ from storage_exceptions import *
 
 from pairtree_object import PairtreeStorageObject
 
+import pairtree_path as ppath
+
 import hashlib
 
 class PairtreeStorageClient(object):
@@ -89,10 +91,10 @@ class PairtreeStorageClient(object):
         self._init_store()
 
     def __char2hex(self, m):
-        return "^%02x"%ord(m.group(0))
+        return ppath.char2hex(m)
 
     def __hex2char(self, m):
-        return chr(int(m.group(1), 16))
+        return ppath.hex2char(m)
 
     def id_encode(self, id):
         """
@@ -140,28 +142,7 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A string of the encoded identifier
         """
-        # Unicode or bust
-        if isinstance(id, unicode):
-            # assume utf-8
-            # TODO - not assume encoding
-            id = id.encode('utf-8')
-
-        second_pass_m = {'/':'=',
-                         ':':'+',
-                         '.':','
-                        }
-        # hexify the odd characters
-        # Using Erik Hetzner's regex in place of my previous hack
-        #new_id = re.sub(r"[\"*+,<=>?\\^|]|[^\x21-\x7e]", self.__char2hex, id)
-        new_id = self._encode.sub(self.__char2hex, id)
-        
-        # 2nd pass
-        # Ditched using .translate and string.maketrans due to weird and
-        # odd errors
-        second_pass = []
-        for char in new_id:
-            second_pass.append(second_pass_m.get(char, char))
-        return "".join(second_pass)
+        return ppath.id_encode(id)
 
     def id_decode(self, id):
         """
@@ -171,20 +152,7 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A string of the decoded identifier
         """
-        second_pass_m = {'=':'/',
-                         '+':':',
-                         ',':'.'
-                        }
-        second_pass = []
-        for char in id:
-            second_pass.append(second_pass_m.get(char, char))
-        dec_id = "".join(second_pass)
-        #dec_id = id.translate(string.maketrans(u'=+,',u'/:.'))
-        # Using Erik Hetzner's regex in place of my previous hack
-        #ppath_s = re.sub(r"\^(..)", self.__hex2char, dec_id)
-        ppath_s = self._decode.sub(self.__hex2char, dec_id)
-        # Again, drop the assumption of utf-8
-        return ppath_s.decode('utf-8')
+        return ppath.id_decode(id)
 
     def _get_id_from_dirpath(self, dirpath):
         """

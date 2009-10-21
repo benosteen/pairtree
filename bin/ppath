@@ -59,7 +59,7 @@ if __name__ == '__main__':
         tokens = args[1].split(sep)
         id_parts = []
         root = []
-        while len(tokens[0]) > 2:
+        while not len(tokens[0]) == 2:
             root.append(tokens.pop(0))
             if len(tokens) == 0:
                 sys.exit("Couldn't recoginise a pairtree encoded path in the parameter")

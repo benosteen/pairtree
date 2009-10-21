@@ -10,7 +10,31 @@ Conventions used:
 
 From http://www.cdlib.org/inside/diglib/pairtree/pairtreespec.html version 0.1
 
+NOTICE
+======
 
+The Pairtree specification on which this implementation is based is (c) 2009 UC Regents.
+
+Various regexes used in path to id conversion and the bulk of the unittests were 
+contributed by Erik Hetzner, based on John Kunze's work, also (c) 2009 UC Regents
+and released under the Apache license.
+
+The ppath script
+================
+
+A ppath script is included for convenience to be used in shell scripts or similar. Eg:
+
+C{ppath topath} examples::
+
+    $ vim mystore/pairtree_root/`ppath topath document:105/data/doc.txt`
+    (Opens the file at mystore/pairtree_root/do/cu/me/nt/+1/05/data/doc.txt)
+    $ cp `ppath topath foo:bar/1.txt` `ppath topath bar:foo/2.txt`
+
+C{ppath toid} examples::
+
+    data/subjects/pairtree_root/HA/SS/ET/ROOT$ ppath toid `pwd`
+    HASSET/ROOT
+    
 Quick Start:
 ============
 
@@ -164,7 +188,7 @@ By setting streamable to False, the entire file is read into memory and returned
 can be any sequence of bytes
 """
 
-__version__ = '0.2.2'
+__version__ = '0.4.5'
 
 
 from pairtree_client import *

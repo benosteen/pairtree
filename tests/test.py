@@ -2,6 +2,8 @@
 import random, unittest, re
 from pairtree import PairtreeStorageClient
 
+from pairtree import ppath
+
 class TestPairtree(unittest.TestCase):
     def i2p2i(self, id, target, label):
         ppath = self.pairtree._id_to_dir_list(id)[1:]
@@ -12,7 +14,12 @@ class TestPairtree(unittest.TestCase):
         ppath = self.pairtree.id_encode(id)
         new_id = self.pairtree.id_decode(ppath)
         self.assertEqual(id, new_id)
+        self.ppath_roundtrip(id, label)
         #self.assertEqual( reverse it)
+
+    def ppath_roundtrip(self, id, label):
+        pp = ppath.get_id_from_dirpath(ppath.id_to_dirpath(id))
+        self.assertEqual(pp, id)
 
     def setUp(self):
         self.pairtree = PairtreeStorageClient('http://example.org', '/tmp/pairtree', 2)

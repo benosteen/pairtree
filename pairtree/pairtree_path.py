@@ -141,7 +141,7 @@ def id_decode(id):
     return ppath_s.decode('utf-8')
 
 
-def get_id_from_dirpath(dirpath):
+def get_id_from_dirpath(dirpath, pairtree_root=""):
     """
     Internal - method for discovering the pairtree identifier for a
     given directory path.
@@ -152,10 +152,10 @@ def get_id_from_dirpath(dirpath):
     @type dirpath: Path to object's root
     @returns: Decoded identifier
     """
-    path = get_path_from_dirpath(dirpath)
+    path = get_path_from_dirpath(dirpath, pairtree_root)
     return id_decode("".join(path))
 
-def get_path_from_dirpath(pairtree_root, dirpath):
+def get_path_from_dirpath(dirpath, pairtree_root=""):
     """
     Internal - walks a directory chain and builds a list of the directory shorties
     relative to the pairtree_root

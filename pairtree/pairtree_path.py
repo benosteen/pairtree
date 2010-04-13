@@ -31,10 +31,6 @@ import re
 
 from storage_exceptions import *
 
-from pairtree_object import PairtreeStorageObject
-
-import hashlib
-
 import logging
 
 logging.basicConfig(level=logging.INFO)

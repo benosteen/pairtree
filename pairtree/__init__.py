@@ -188,12 +188,27 @@ By setting streamable to False, the entire file is read into memory and returned
 can be any sequence of bytes
 """
 
-__version__ = '0.4.5'
-
+__version__ = '0.5'
 
 from pairtree_client import *
 from pairtree_store import *
 from pairtree_object import *
-from pairtree_path import *
+import pairtree_path as ppath
 from storage_exceptions import *
+
+#_client =  PairtreeStorageClient(store_dir='data', uri_base="info:data/")
+
+def id2path(id):
+    """
+    pass in a pairtree id and get back a path
+    """
+    path = ppath_client.id_to_dirpath(id)
+    return path
+
+def path2id(path):
+    """
+    pass in a pairtree path and get back an id
+    """
+    #path = os.path.join(_client.pairtree_root, path)
+    return ppath.get_id_from_dirpath(path)
 

@@ -65,7 +65,7 @@ class PairtreeStorageClient(object):
     Also, if you try to create a store over a directory that already exists, but which isn't
     a pairtree store that it can recognise, it will raise a L{NotAPairtreeStoreException}.
     """
-    def __init__(self, uri_base, store_dir, shorty_length, hashing_type=None):
+    def __init__(self, uri_base, store_dir, shorty_length=2, hashing_type=None):
         """
         Constructor
         @param store_dir: The file directory where the pairtree store is
@@ -165,8 +165,9 @@ class PairtreeStorageClient(object):
         @type dirpath: Path to object's root
         @returns: Decoded identifier
         """
-        path = self._get_path_from_dirpath(dirpath)
-        return self.id_decode("".join(path))
+        #path = self._get_path_from_dirpath(dirpath)
+        #return self.id_decode("".join(path))
+        return ppath.get_id_from_dirpath(dirpath)
 
     def _get_path_from_dirpath(self, dirpath):
         """
@@ -176,14 +177,14 @@ class PairtreeStorageClient(object):
         @param dirpath: Directory path to walk
         @type dirpath: Directory path
         """
-        head, tail = os.path.split(dirpath)
-        path = [tail]
-        while not self.pairtree_root == head:
-            head, tail = os.path.split(head)
-            path.append(tail)
-        path.reverse()
-        return path
-
+#        head, tail = os.path.split(dirpath)
+#        path = [tail]
+#        while not self.pairtree_root == head:
+#            head, tail = os.path.split(head)
+#            path.append(tail)
+#        path.reverse()
+#        return path
+        return ppath.get_path_from_dirpath(dirpath)
 
 
     def _id_to_dirpath(self, id):
@@ -197,8 +198,8 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A directory path to the object's root directory
         """
-        return os.sep.join(self._id_to_dir_list(id))
-
+#        return os.sep.join(self._id_to_dir_list(id))
+        return ppath.id_to_dirpath(id)
 
     def _id_to_dir_list(self, id):
         """
@@ -211,13 +212,14 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A list of directory path fragments to the object's root directory
         """
-        enc_id = self.id_encode(id)
-        dirpath = [self.pairtree_root]
-        while enc_id:
-            dirpath.append(enc_id[:self.shorty_length])
-            enc_id = enc_id[self.shorty_length:]
-        return dirpath
-
+#        enc_id = self.id_encode(id)
+#        dirpath = [self.pairtree_root]
+#        while enc_id:
+#            dirpath.append(enc_id[:self.shorty_length])
+#            enc_id = enc_id[self.shorty_length:]
+#        return dirpath
+        return ppath.id_to_dir_list(id, self.pairtree_root, self.shorty_length)
+        
     def _init_store(self):
         """
         Initialise the store if the directory doesn't exist. Create the basic structure

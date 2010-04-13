@@ -139,3 +139,69 @@ def id_decode(id):
     ppath_s = decode_regex.sub(hex2char, dec_id)
     # Again, drop the assumption of utf-8
     return ppath_s.decode('utf-8')
+
+
+def get_id_from_dirpath(dirpath):
+    """
+    Internal - method for discovering the pairtree identifier for a
+    given directory path.
+
+    E.g.  pairtree_root/fo/ob/ar/+/  --> 'foobar:'
+
+    @param dirpath: Directory path to decode
+    @type dirpath: Path to object's root
+    @returns: Decoded identifier
+    """
+    path = get_path_from_dirpath(dirpath)
+    return id_decode("".join(path))
+
+def get_path_from_dirpath(pairtree_root, dirpath):
+    """
+    Internal - walks a directory chain and builds a list of the directory shorties
+    relative to the pairtree_root
+
+    @param dirpath: Directory path to walk
+    @type dirpath: Directory path
+    """
+    head, tail = os.path.split(dirpath)
+    path = [tail]
+    while not pairtree_root == head:
+        head, tail = os.path.split(head)
+        path.append(tail)
+    path.reverse()
+    return path
+
+def id_to_dirpath(id):
+    """
+    Internal - method for turning an identifier into a pairtree directory tree
+    of shorties.
+
+        -  I{"foobar://ark.1" --> "fo/ob/ar/+=/ar/k,/1"}
+
+    @param id: Identifer for a pairtree object
+    @type id: identifier
+    @returns: A directory path to the object's root directory
+    """
+    return os.sep.join(id_to_dir_list(id))
+
+
+def id_to_dir_list(id, pairtree_root="", shorty_length=2):
+    """
+    Internal - method for turning an identifier into a list of pairtree 
+    directory tree of shorties.
+
+        -  I{"foobar://ark.1" --> ["fo","ob","ar","+=","ar","k,","1"]}
+
+    @param id: Identifer for a pairtree object
+    @type id: identifier
+    @returns: A list of directory path fragments to the object's root directory
+    """
+    enc_id = id_encode(id)
+    dirpath = []
+    if pairtree_root:
+        dirpath = [pairtree_root]
+    while enc_id:
+        dirpath.append(enc_id[:shorty_length])
+        enc_id = enc_id[shorty_length:]
+    return dirpath
+

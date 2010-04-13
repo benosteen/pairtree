@@ -87,6 +87,22 @@ if __name__ == '__main__':
     elif cmd == 'help' or cmd == "":
         print "ppath topath [id] - converts an id or id/subpath into a pairtree directory path"
         print "ppath toid [path] - converts a filepath into an id or id/subpath"
+    elif len(args) == 1:
+        # Assume topath - eg ppath foo:1 -> reads as -> ppath topath foo:1
+        frags = args[0].split(sep, 1)
+        path = None
+        if len(frags)>1:
+            ident, path = frags
+        else:
+            ident = frags[0]
+        encodedid = id_encode(ident)
+        filepath = []
+        while encodedid:
+            filepath.append(encodedid[:2])
+            encodedid = encodedid[2:]
+        if path:
+            filepath.append(path)
+        print j(*filepath)
     else:
         print "unknown command: %s" % cmd
         print "ppath topath [id] - converts an id or id/subpath into a pairtree directory path"

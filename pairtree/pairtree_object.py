@@ -160,7 +160,7 @@ class PairtreeStorageObject(object):
             return self.add_bytestream(filename, bytestream, path, buffer_size)
         return self.add_bytestream(filename, bytestream, path)
 
-    def get_bytestream(self, filename, streamable=False, path=None):
+    def get_bytestream(self, filename, streamable=False, path=None, appendable=False):
         """
         Reads a file from a pairtree object - If streamable is set to True,
         this returns the filehandle for that file, which must be C{close()}'d
@@ -172,6 +172,9 @@ class PairtreeStorageObject(object):
         
         stream is closed at the end of a C{with} block
         
+        If appendable is set to True, then the file is opened "wb+" and can accept writes.
+        Otherwise, the file is opened read-only.
+        
         @param path: (Optional) subdirectory path to retrieve file from
         @type path: Directory path
         @param filename: Name of the file to read in
@@ -182,9 +185,12 @@ class PairtreeStorageObject(object):
         @type streamable: True|False
         @returns: Either L{file} or L{str}
         """
-        return self.fs.get_stream(self.id, path=path, stream_name=filename, streamable=streamable)
+        if appendable:
+            return self.fs.get_appendable_stream(self.id, path=path, stream_name=filename)
+        else:
+            return self.fs.get_stream(self.id, path=path, stream_name=filename, streamable=streamable)
 
-    def get_bytestream_by_path(self, filepath, streamable=False):
+    def get_bytestream_by_path(self, filepath, streamable=False, appendable=False):
         """
         As L{get_bytestream}, but can ask for a file via a path:
         
@@ -200,7 +206,7 @@ class PairtreeStorageObject(object):
         @returns: Either L{file} or L{str}
         """
         path, filename = os.path.split(filepath)
-        return self.get_bytestream(filename, streamable, path)
+        return self.get_bytestream(filename, streamable, path, appendable)
 
     def add_file(self, from_file_location, path=None, new_filename=None, buffer_size=None):
         """
@@ -260,11 +266,23 @@ class PairtreeStorageObject(object):
         >>> object.del_file_by_path('data/image2.jpg')
         >>>
         
-        @param filepath: (Optional) subdirectory filepath within object to delete
+        @param filepath: subdirectory filepath within object to delete
         @type filepath: Directory path
         """
         path, filename = os.path.split(filepath)
         return self.del_file(filename, path)
+
+    def del_path(self, subpath, recursive=False):
+        """
+        Delete a subpath from the object, and can do so recursively (optional)
+        If the path is found to be not "empty" (ie has not parts in it) and
+        recursive is not True, then it will raise a L{PathIsNotEmptyException}
+        @param path: subdirectory path to delete
+        @type path: Directory path
+        @param recursive: Whether the delete is recursive (think rm -rf)
+        @type recursive: bool
+        """
+        return self.fs.del_path(self.id, subpath, recursive)
 
     def list_parts(self, path=None):
         """
@@ -283,26 +301,26 @@ class PairtreeStorageObject(object):
         """
         return self.fs.list_parts(self.id, path)
 
-    def download_fetchtxt_urls(self, fetchtxt, retry_on_checksum_error = True):
+    def isfile(self, filepath):
         """
-        TODO!!! or maybe remove to a separate class
+        Returns True or False depending on whether the path is a file or not.
         
-        @param fetchtxt:
-        @type fetchtxt:
-        @param retry_on_checksum_error:
-        @type retry_on_checksum_error:
+        If the file doesn't exist, False is returned.
+        
+        @param path: Path to be tested
+        @type path: Directory path
+        @returns: L{bool}
         """
-        pass
-
-    def add_bagit_information(self):
+        return self.fs.isfile(self.id, filepath)
+        
+    def isdir(self, filepath):
         """
-        TODO!!! or maybe remove to a separate class
+        Returns True or False depending on whether the path is a subdirectory or not.
+        
+        If the path doesn't exist, False is returned.
+        
+        @param path: Path to be tested
+        @type path: Directory path
+        @returns: L{bool}
         """
-        pass
-
-    def remove_bagit_information(self):
-        """
-        TODO!!! or maybe remove to a separate class
-        """
-        pass
-
+        return self.fs.isdir(self.id, filepath)

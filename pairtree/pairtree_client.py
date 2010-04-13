@@ -280,11 +280,10 @@ class PairtreeStorageClient(object):
 
         Currently, it ignores the possibility of a split end being
         'shielded' by a /obj/ folder
+        
+        Returns a generator, not a plain list since version 0.4.12
 
-        (Note - this will shortly be turned into a generator, due to the expense of
-        the call)
-
-        @returns: L{list}
+        @returns: L{generator}
         """
 
         objects = set()
@@ -293,16 +292,17 @@ class PairtreeStorageClient(object):
         if paths:
             d = paths.pop()
         while d:
-            for t in [x for x in os.listdir(d) if os.path.isdir(os.path.join(d, x))]:
+            for t in os.listdir(d):
                 if len(t)>self.shorty_length:
-                    objects.add(self._get_id_from_dirpath(d))
-                else:
+                    if self._get_id_from_dirpath(d) not in objects:
+                        objects.add(self._get_id_from_dirpath(d))
+                        yield self._get_id_from_dirpath(d)
+                elif os.path.isdir(os.path.join(d, t)):
                     paths.append(os.path.join(d, t))
             if paths:
                 d = paths.pop()
             else:
                 d =False
-        return objects
 
     def _create(self, id):
         """
@@ -344,6 +344,38 @@ class PairtreeStorageClient(object):
         if not os.path.exists(dirpath):
             raise ObjectNotFoundException
         return [x for x in os.listdir(dirpath) if len(x)>self.shorty_length]
+
+    def isfile(self, id, filepath):
+        """
+        Returns True or False depending on whether the path is a file or not.
+        
+        If the file doesn't exist, False is returned.
+        
+        @param filepath: Path to be tested
+        @type filepath: Directory path
+        @returns: L{bool}
+        """
+        dirpath = os.path.join(self._id_to_dirpath(id), filepath)
+        try:
+            return os.path.isfile(dirpath)
+        except OSError:
+            return False
+        
+    def isdir(self, id, filepath):
+        """
+        Returns True or False depending on whether the path is a subdirectory or not.
+        
+        If the path doesn't exist, False is returned.
+        
+        @param filepath: Path to be tested
+        @type filepath: Directory path
+        @returns: L{bool}
+        """
+        dirpath = os.path.join(self._id_to_dirpath(id), filepath)
+        try:
+            return os.path.isdir(dirpath)
+        except OSError:
+            return False
 
     def put_stream(self, id, path, stream_name, bytestream, buffer_size = 1024 * 8):
         """
@@ -393,6 +425,31 @@ class PairtreeStorageClient(object):
         
         if self.hashing_type != None:
             return (self.hashing_type, hash_gen.hexdigest())
+
+    def get_appendable_stream(self, id, path, stream_name):
+        """
+        Reads a filehandle for a pairtree object. This is a "wb+" opened file and
+        so can be appended to and obeys 'seek'
+        
+        >>> with store.get_appendable_stream('foobar:1','data/images', 'image001.tif') as stream:
+                # Do something with the C{stream} handle
+                pass
+
+        stream is closed at the end of a C{with} block
+
+        @param id: Identifier for the pairtree object to read from
+        @type id: identifier
+        @param path: (Optional) subdirectory path to retrieve file from
+        @type path: Directory path
+        @param stream_name: Name of the file to read in
+        @type stream_name: filename
+        @returns: L{file}
+        """
+        file_path = os.path.join(self._id_to_dirpath(id), stream_name)
+        if path:
+            file_path = os.path.join(self._id_to_dirpath(id), path, stream_name)
+        f = open(file_path, "wb+")
+        return f
 
     def get_stream(self, id, path, stream_name, streamable=False):
         """
@@ -446,7 +503,10 @@ class PairtreeStorageClient(object):
             file_path = os.path.join(self._id_to_dirpath(id), path, stream_name)
         if not os.path.exists(file_path):
             raise PartNotFoundException(id=id, path=path, stream_name=stream_name,file_path=file_path)
-        os.remove(file_path)
+        if os.path.isdir(file_path):
+            os.rmdir(file_path)
+        else:
+            os.remove(file_path)
 
     def del_path(self, id, path, recursive=False):
         """

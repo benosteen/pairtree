@@ -171,7 +171,7 @@ def get_path_from_dirpath(dirpath, pairtree_root=""):
     path.reverse()
     return path
 
-def id_to_dirpath(id):
+def id_to_dirpath(id, pairtree_root="", shorty_length=2):
     """
     Internal - method for turning an identifier into a pairtree directory tree
     of shorties.
@@ -182,7 +182,7 @@ def id_to_dirpath(id):
     @type id: identifier
     @returns: A directory path to the object's root directory
     """
-    return os.sep.join(id_to_dir_list(id))
+    return os.sep.join(id_to_dir_list(id, pairtree_root, shorty_length))
 
 
 def id_to_dir_list(id, pairtree_root="", shorty_length=2):

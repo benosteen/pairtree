@@ -188,7 +188,7 @@ By setting streamable to False, the entire file is read into memory and returned
 can be any sequence of bytes
 """
 
-__version__ = '0.5'
+__version__ = '0.5.1'
 
 from pairtree_client import *
 from pairtree_store import *

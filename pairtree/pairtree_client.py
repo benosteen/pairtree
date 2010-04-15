@@ -167,7 +167,7 @@ class PairtreeStorageClient(object):
         """
         #path = self._get_path_from_dirpath(dirpath)
         #return self.id_decode("".join(path))
-        return ppath.get_id_from_dirpath(dirpath)
+        return ppath.get_id_from_dirpath(dirpath, self.pairtree_root)
 
     def _get_path_from_dirpath(self, dirpath):
         """
@@ -184,7 +184,7 @@ class PairtreeStorageClient(object):
 #            path.append(tail)
 #        path.reverse()
 #        return path
-        return ppath.get_path_from_dirpath(dirpath)
+        return ppath.get_path_from_dirpath(dirpath, self.pairtree_root)
 
 
     def _id_to_dirpath(self, id):
@@ -199,7 +199,7 @@ class PairtreeStorageClient(object):
         @returns: A directory path to the object's root directory
         """
 #        return os.sep.join(self._id_to_dir_list(id))
-        return ppath.id_to_dirpath(id)
+        return ppath.id_to_dirpath(id, self.pairtree_root, self.shorty_length)
 
     def _id_to_dir_list(self, id):
         """

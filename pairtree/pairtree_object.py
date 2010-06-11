@@ -324,3 +324,29 @@ class PairtreeStorageObject(object):
         @returns: L{bool}
         """
         return self.fs.isdir(self.id, filepath)
+
+    def stat(self, filepath):
+        """
+        Returns the os.stat for a given file, or False if the file doesn't exist
+        
+        @param id: id of the object
+        @type id: string
+        @param filepath: Path to be tested
+        @type filepath: Directory path
+        @returns L{posix.stat_result} or False
+        """
+        if self.isfile(id, filepath):
+            return self.fs.stat(self.id, filepath)
+        else:
+            return False
+
+    def id_to_dirpath(self):
+        """
+        Get the path to the top of this object
+
+            -  I{"foobar://ark.1" --> "fo/ob/ar/+=/ar/k,/1"}
+
+        @returns: A directory path to the object's root directory
+        """
+#        return os.sep.join(self._id_to_dir_list(id))
+        return self.fs._id_to_dirpath(self.id)

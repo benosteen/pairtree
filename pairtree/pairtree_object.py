@@ -335,7 +335,7 @@ class PairtreeStorageObject(object):
         @type filepath: Directory path
         @returns L{posix.stat_result} or False
         """
-        if self.isfile(id, filepath):
+        if self.isfile(filepath):
             return self.fs.stat(self.id, filepath)
         else:
             return False

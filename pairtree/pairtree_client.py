@@ -553,7 +553,7 @@ class PairtreeStorageClient(object):
                 os.rmdir(dirpath)
             elif recursive:
                 for item in deletable_parts:
-                    if os.path.isdir(item):
+                    if os.path.isdir(os.path.join(dirpath, item)):
                         shutil.rmtree(os.path.join(dirpath, item))
                     else:
                         os.remove(os.path.join(dirpath, item))

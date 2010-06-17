@@ -9,6 +9,22 @@ From http://www.cdlib.org/inside/diglib/pairtree/pairtreespec.html version 0.1
 This client handles all of the pairtree conventions, and provides a Pairtree object
 to make it easier to interact with.
 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+EXTENSION - This version uses terminators to signal the directory within which an object resides. This
+is an effort to avoid the 'split-end' issue and to simplify a number of issues to do with object file and subpath
+listings.
+
+So:
+
+foobar:1/ goes to fo/ob/ar/+1/obj/
+
+and 
+
+bar:1/subpath/manifest.rdf goes to ba/r+/1/obj/subpath/manifest.rdf
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 Usage
 =====
 
@@ -79,15 +95,15 @@ def id_encode(id):
 
         id:  ark:/13030/xt12t3
             ->  ark+=13030=xt12t3
-            ->  ar/k+/=1/30/30/=x/t1/2t/3/
+            ->  ar/k+/=1/30/30/=x/t1/2t/3/obj/
         id:  http://n2t.info/urn:nbn:se:kb:repos-1
             ->  http+==n2t,info=urn+nbn+se+kb+repos-1
-            ->  ht/tp/+=/=n/2t/,i/nf/o=/ur/n+/n/bn/+s/e+/kb/+/re/p/os/-1/
+            ->  ht/tp/+=/=n/2t/,i/nf/o=/ur/n+/n/bn/+s/e+/kb/+/re/p/os/-1/obj/
         id:  what-the-*@?#!^!?
             ->  what-the-^2a@^3f#!^5e!^3f
-            ->  wh/at/-t/he/-^/2a/@^/3f/#!/^5/e!/^3/f/
+            ->  wh/at/-t/he/-^/2a/@^/3f/#!/^5/e!/^3/f/obj/
 
-    (From section 3 of the Pairtree specification)
+    (From section 3 of the Pairtree specification - with obj extension)
 
     @param id: Encode the given identifier according to the pairtree 0.1 specification
     @type id: identifier
@@ -136,6 +152,21 @@ def id_decode(id):
     # Again, drop the assumption of utf-8
     return ppath_s.decode('utf-8')
 
+def get_terminator(shorty_length=2, end_of_pairtree_path="obj"):
+    """
+    Terminator directory name, based on the shorty length.
+    
+    It has to be one greater than the shorty length of a given pairtree, to avoid being
+    part of a splitend and potentially incorporated or interpreted as part of another object
+    
+    shorty length = 1 (with default end of path string)
+    -> "ob"
+    shorty length = 2
+    -> "obj"
+    shorty length = 6
+    -> "objobjo"
+    """
+    return "".join([(end_of_pairtree_path[x % len(end_of_pairtree_path)]) for x in xrange(shorty_length+1)])
 
 def get_id_from_dirpath(dirpath, pairtree_root=""):
     """
@@ -148,8 +179,9 @@ def get_id_from_dirpath(dirpath, pairtree_root=""):
     @type dirpath: Path to object's root
     @returns: Decoded identifier
     """
-    path = get_path_from_dirpath(dirpath, pairtree_root)
-    return id_decode("".join(path))
+    path, shorty_length = get_path_from_dirpath(dirpath, pairtree_root)
+    assert path[-1] == get_terminator(shorty_length=shorty_length)
+    return id_decode("".join(path[:-1]))
 
 def get_path_from_dirpath(dirpath, pairtree_root=""):
     """
@@ -159,13 +191,17 @@ def get_path_from_dirpath(dirpath, pairtree_root=""):
     @param dirpath: Directory path to walk
     @type dirpath: Directory path
     """
+    shorty_length = None
     head, tail = os.path.split(dirpath)
     path = [tail]
     while not pairtree_root == head:
         head, tail = os.path.split(head)
+        if not shorty_length:
+            shorty_length = len(tail)
         path.append(tail)
     path.reverse()
-    return path
+    assert path[-1] == get_terminator(shorty_length=shorty_length)
+    return path, shorty_length
 
 def id_to_dirpath(id, pairtree_root="", shorty_length=2):
     """
@@ -199,5 +235,6 @@ def id_to_dir_list(id, pairtree_root="", shorty_length=2):
     while enc_id:
         dirpath.append(enc_id[:shorty_length])
         enc_id = enc_id[shorty_length:]
+    dirpath.append(get_terminator(shorty_length=shorty_length))
     return dirpath
 

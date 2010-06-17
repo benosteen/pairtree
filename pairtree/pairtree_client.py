@@ -267,21 +267,16 @@ class PairtreeStorageClient(object):
         as long as non-shortie directorys are just that; non-shortie directories must
         have longer labels than the shorties - e.g::
 
-              ab -- cd -- ef -- foo.txt
+              ab -- cd -- ef -- obj -- foo.txt
                      |     |
                      |     ---- gh
                      |           |
-                     |           ---- foo.txt
+                     |           -- obj -- foo.txt
                      |
-                     ---- e  -- foo.txt
+                     ---- e -- obj -- foo.txt
 
               This method will return ['abcdef', 'abcde', 'abcdefgh'] as ids in this
               store.
-
-        TODO: Need to make sure this corresponds to pairtree spec.
-
-        Currently, it ignores the possibility of a split end being
-        'shielded' by a /obj/ folder
         
         Returns a generator, not a plain list since version 0.4.12
 
@@ -291,14 +286,16 @@ class PairtreeStorageClient(object):
         objects = set()
         paths = [os.path.join(self.pairtree_root, x) for x in os.listdir(self.pairtree_root) if os.path.isdir(os.path.join(self.pairtree_root, x))]
         d = None
+        terminator = ppath.get_terminator(self.shorty_length)
         if paths:
             d = paths.pop()
         while d:
             for t in os.listdir(d):
-                if len(t)>self.shorty_length:
-                    if self._get_id_from_dirpath(d) not in objects:
-                        objects.add(self._get_id_from_dirpath(d))
-                        yield self._get_id_from_dirpath(d)
+                if t == terminator:
+                    potential_id = self._get_id_from_dirpath(os.path.join(d, terminator))
+                    if potential_id not in objects:
+                        objects.add(potential_id)
+                        yield potential_id
                 elif os.path.isdir(os.path.join(d, t)):
                     paths.append(os.path.join(d, t))
             if paths:
@@ -345,7 +342,8 @@ class PairtreeStorageClient(object):
             dirpath = os.path.join(self._id_to_dirpath(id), path)
         if not os.path.exists(dirpath):
             raise ObjectNotFoundException
-        return [x for x in os.listdir(dirpath) if len(x)>self.shorty_length]
+        return os.listdir(dirpath)
+        #return [x for x in os.listdir(dirpath) if len(x)>self.shorty_length]
 
     def isfile(self, id, filepath):
         """
@@ -547,22 +545,14 @@ class PairtreeStorageClient(object):
         if os.path.isfile(dirpath):
             os.remove(dirpath)
         else:
+            # It's a directory:
             all_parts = os.listdir(dirpath)
-            deletable_parts = [x for x in all_parts if len(x)>self.shorty_length]
+            
             if len(all_parts) == 0:
                 os.rmdir(dirpath)
             elif recursive:
-                for item in deletable_parts:
-                    if os.path.isdir(os.path.join(dirpath, item)):
-                        shutil.rmtree(os.path.join(dirpath, item))
-                    else:
-                        os.remove(os.path.join(dirpath, item))
-                if len(all_parts) == len(deletable_parts):
-                    os.rmdir(dirpath)
-            elif len(deletable_parts) == 0:
-                # Directory not physically empty, but empty of parts
-                pass
-
+                # thankfully, terminators simplify this
+                shutil.rmtree(dirpath)
             else:
                 raise PathIsNotEmptyException
 

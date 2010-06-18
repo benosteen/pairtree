@@ -196,11 +196,14 @@ def get_path_from_dirpath(dirpath, pairtree_root=""):
     path = [tail]
     while not pairtree_root == head:
         head, tail = os.path.split(head)
-        if not shorty_length:
-            shorty_length = len(tail)
+        shorty_length = len(tail)
         path.append(tail)
     path.reverse()
-    assert path[-1] == get_terminator(shorty_length=shorty_length)
+    try:
+        assert path[-1] == get_terminator(shorty_length=shorty_length)
+    except AssertionError:
+        logger.error("For dirpath: %s and pairtree_root=%s" % (dirpath, pairtree_root))
+        logger.error("Anticipated to get an %s at the end of the path, got %s instead" % (get_terminator(shorty_length=shorty_length), path) )
     return path, shorty_length
 
 def id_to_dirpath(id, pairtree_root="", shorty_length=2):

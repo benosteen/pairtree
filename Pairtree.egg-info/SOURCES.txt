@@ -1,6 +1,5 @@
 ez_setup.py
 setup.py
-setuptools-0.6c9-py2.5.egg
 Pairtree.egg-info/PKG-INFO
 Pairtree.egg-info/SOURCES.txt
 Pairtree.egg-info/dependency_links.txt

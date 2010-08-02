@@ -445,10 +445,12 @@ class PairtreeStorageClient(object):
         except Exception, e:
             logger.info("put_stream failed: %s" % e)
         f.close()
+        if self.hashing_type != None:
+            return hash_gen.hexdigest()
 
     def get_appendable_stream(self, id, path, stream_name):
         """
-        Reads a filehandle for a pairtree object. This is a "wb+" opened file and
+        Reads a filehandle for a pairtree object. This is a "ab+" opened file and
         so can be appended to and obeys 'seek'
         
         >>> with store.get_appendable_stream('foobar:1','data/images', 'image001.tif') as stream:
@@ -468,7 +470,7 @@ class PairtreeStorageClient(object):
         file_path = os.path.join(self._id_to_dirpath(id), stream_name)
         if path:
             file_path = os.path.join(self._id_to_dirpath(id), path, stream_name)
-        f = open(file_path, "wb+")
+        f = open(file_path, "ab+")
         return f
 
     def get_stream(self, id, path, stream_name, streamable=False):

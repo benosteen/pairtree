@@ -446,7 +446,7 @@ class PairtreeStorageClient(object):
             logger.info("put_stream failed: %s" % e)
         f.close()
         if self.hashing_type != None:
-            return hash_gen.hexdigest()
+            return {"checksum":hash_gen.hexdigest(), "type":self.hashing_type}
 
     def get_appendable_stream(self, id, path, stream_name):
         """

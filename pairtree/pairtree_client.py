@@ -471,6 +471,24 @@ class PairtreeStorageClient(object):
         f = open(file_path, "ab+")
         return f
 
+    def get_url(self, id, stream_name, path=None):
+        """
+        Returns a direct 'file:///...' URL for a given id and stream (with an optional path)
+
+        @param id: Identifier for the pairtree object to read from
+        @type id: identifier
+        @param path: (Optional) subdirectory path to the file location
+        @type path: Directory path
+        @param stream_name: Name of the file to point to
+        @type stream_name: filename
+        @returns: L{str} - eg "file:///opt/store/pairtree_root/..../foo.txt"
+        """
+        file_path = stream_name
+        if path:
+            file_path = os.path.join(path, stream_name)
+        url_prefix = ppath.id_to_url(id, self.pairtree_root, self.shorty_length)
+        return os.sep.join((url_prefix, file_path))
+
     def get_stream(self, id, path, stream_name, streamable=False):
         """
         Reads a file from a pairtree object - If streamable is set to True,

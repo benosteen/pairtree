@@ -202,8 +202,12 @@ def get_path_from_dirpath(dirpath, pairtree_root=""):
     try:
         assert path[-1] == get_terminator(shorty_length=shorty_length)
     except AssertionError:
-        logger.error("For dirpath: %s and pairtree_root=%s" % (dirpath, pairtree_root))
-        logger.error("Anticipated to get an %s at the end of the path, got %s instead" % (get_terminator(shorty_length=shorty_length), path) )
+        if len(path) == 2:
+            # edge case - id length of 1. Using the terminator length as (shorty_length+1)
+            shorty_length = len(path[-1])-1
+        else:
+            logger.error("For dirpath: %s and pairtree_root=%s" % (dirpath, pairtree_root))
+            logger.error("Anticipated to get an %s at the end of the path, got %s instead" % (get_terminator(shorty_length=shorty_length), path) )
     return path, shorty_length
 
 def id_to_dirpath(id, pairtree_root="", shorty_length=2):
@@ -218,6 +222,23 @@ def id_to_dirpath(id, pairtree_root="", shorty_length=2):
     @returns: A directory path to the object's root directory
     """
     return os.sep.join(id_to_dir_list(id, pairtree_root, shorty_length))
+
+def id_to_url(id, pairtree_root, shorty_length=2):
+    """Method to provide 'file:///..../pairtree_root/...' URLs pointing at a given object.
+
+        -  I{"foobar" --> "file:///opt/pairtree_root/fo/ob/ar/obj"}
+
+    @param id: Identifier for a pairtree object
+    @type id: identifier
+    @param pairtree_root: required path to the pairtree store (and must exist)
+    @returns: A 'file:///' URL
+    """
+    if os.path.isdir(pairtree_root):
+        root = os.path.abspath(pairtree_root)
+        obj_path = id_to_dirpath(id, shorty_length = shorty_length)
+        return "file://%s" % (os.path.join(root, obj_path))
+    else:
+        raise OSError, "pairtree_root '' does not exist." % pairtree_root
 
 
 def id_to_dir_list(id, pairtree_root="", shorty_length=2):

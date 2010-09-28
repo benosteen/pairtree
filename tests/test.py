@@ -4,6 +4,9 @@ from pairtree import PairtreeStorageClient
 
 from pairtree import ppath
 
+
+PAIRTREE_STORAGE_DIR = "/tmp/pairtree"
+
 class TestPairtree(unittest.TestCase):
     def i2p2i(self, id, target, label):
         ppath = self.pairtree._id_to_dir_list(id)[1:]
@@ -22,7 +25,7 @@ class TestPairtree(unittest.TestCase):
         self.assertEqual(pp, id)
 
     def setUp(self):
-        self.pairtree = PairtreeStorageClient('http://example.org', '/tmp/pairtree', 2)
+        self.pairtree = PairtreeStorageClient('http://example.org', PAIRTREE_STORAGE_DIR, 2)
 
     def test_empty(self):
         pass
@@ -33,37 +36,37 @@ class TestPairtree(unittest.TestCase):
         #    pass
 
     def testabc(self):
-        self.i2p2i('abc', ['ab','c'], 'basic 3-char case')
+        self.i2p2i('abc', ['ab','c','obj'], 'basic 3-char case')
     
     def testabc_roundtrip(self):
         self.roundtrip('abc', 'basic 3-char case - roundtrip')
 
     def testabc(self):
-        self.i2p2i('abcd', ['ab','cd'], 'basic 4-char case')
+        self.i2p2i('abcd', ['ab','cd', 'obj'], 'basic 4-char case')
 
     def testabc_roundtrip(self):
         self.roundtrip('abcd', 'basic 4-char case - roundtrip')
     
     def testabc(self):
-        self.i2p2i('abcd', ['ab','cd'], 'basic 4-char case')
+        self.i2p2i('abcd', ['ab','cd', 'obj'], 'basic 4-char case')
         
     def testabc_roundtrip(self):
         self.roundtrip('abcd', 'basic 4-char case - roundtrip')
 
     def testxy(self):
-        self.i2p2i('xy', ['xy'], '2-char edge case')
+        self.i2p2i('xy', ['xy', 'obj'], '2-char edge case')
         
     def testxy_roundtrip(self):
         self.roundtrip('xy', '2-char edge case - roundtrip')
 
     def testz(self):
-        self.i2p2i('z', ['z'], '1-char edge case')
+        self.i2p2i('z', ['z', 'obj'], '1-char edge case')
         
     def testz_roundtrip(self):
         self.roundtrip('z', '1-char edge case - roundtrip')
         
     def test12_986xy4(self):
-        self.i2p2i('12-986xy4', ['12', '-9', '86', 'xy', '4'], 'hyphen')
+        self.i2p2i('12-986xy4', ['12', '-9', '86', 'xy', '4', 'obj'], 'hyphen')
         
     def test12_986xy4_roundtrip(self):
         self.roundtrip('12-986xy4', 'hyphen - roundtrip')
@@ -71,7 +74,7 @@ class TestPairtree(unittest.TestCase):
     def test_13030_45xqv_793842495(self):
         self.i2p2i('13030_45xqv_793842495',
                    ['13', '03', '0_', '45', 'xq', 'v_', '79', '38', '42', '49', 
-                    '5'],
+                    '5', 'obj'],
                    'long id with undescores')
 
     def test_13030_45xqv_793842495_roundtrip(self):
@@ -80,7 +83,7 @@ class TestPairtree(unittest.TestCase):
 
     def test_ark_13030_xt12t3(self):
         self.i2p2i('ark:/13030/xt12t3',
-                   ['ar', 'k+', '=1', '30', '30', '=x', 't1', '2t', '3'],
+                   ['ar', 'k+', '=1', '30', '30', '=x', 't1', '2t', '3', 'obj'],
                    'colons and slashes')
 
     def test_ark_13030_xt12t3_roundtrip(self):
@@ -88,13 +91,13 @@ class TestPairtree(unittest.TestCase):
                    'colons and slashes - roundtrip')
 
     def test_space(self):
-        self.i2p2i('hello world', ['he', 'll', 'o^', '20', 'wo', 'rl', 'd'], 'space')
+        self.i2p2i('hello world', ['he', 'll', 'o^', '20', 'wo', 'rl', 'd', 'obj'], 'space')
         
     def test_space_roundtrip(self):
         self.roundtrip('hello world', 'space - roundtrip')
         
     def test_slash(self):
-        self.i2p2i('/', ['='], '1-separator-char edge case')
+        self.i2p2i('/', ['=', 'obj'], '1-separator-char edge case')
 
     def test_slash_roundtrip(self):
         self.roundtrip('/', '1-separator-char edge case - roundtrip')
@@ -102,7 +105,7 @@ class TestPairtree(unittest.TestCase):
     def test_urn(self):
         self.i2p2i('http://n2t.info/urn:nbn:se:kb:repos-1',
                    ['ht', 'tp', '+=', '=n', '2t', ',i', 'nf', 'o=', 'ur', 'n+', 
-                    'nb', 'n+', 'se', '+k', 'b+', 're', 'po', 's-', '1'],
+                    'nb', 'n+', 'se', '+k', 'b+', 're', 'po', 's-', '1', 'obj'],
                    'a URL with colons, slashes, and periods')
 
     def test_urn_roundtrip(self):
@@ -112,7 +115,7 @@ class TestPairtree(unittest.TestCase):
     def test_wtf(self):
         self.i2p2i('what-the-*@?#!^!?',
                    ['wh', 'at', '-t', 'he', '-^', '2a', '@^', '3f', '#!', '^5', 
-                    'e!', '^3', 'f'],
+                    'e!', '^3', 'f', 'obj'],
                    'weird chars from spec example');
 
     def test_wtf_roundtrip(self):
@@ -122,7 +125,7 @@ class TestPairtree(unittest.TestCase):
     def test_weird(self):
         self.i2p2i('\\"*+,<=>?^|',
                    ['^5', 'c^', '22', '^2', 'a^', '2b', '^2', 'c^', '3c', '^3',
-                    'd^', '3e', '^3', 'f^', '5e', '^7', 'c'],
+                    'd^', '3e', '^3', 'f^', '5e', '^7', 'c', 'obj'],
                    'all weird visible chars');
 
     def test_weird_roundtrip(self):
@@ -159,7 +162,7 @@ class TestPairtree(unittest.TestCase):
     def test_french(self):
         self.i2p2i('Années de Pèlerinage',
                    ['An', 'n^', 'c3', '^a', '9e', 's^', '20', 'de', '^2', '0P',
-                    '^c', '3^', 'a8', 'le', 'ri', 'na', 'ge'],
+                    '^c', '3^', 'a8', 'le', 'ri', 'na', 'ge', 'obj'],
                    'UTF-8 chars')
 
         self.i2p2i("Années de Pèlerinage (Years of Pilgrimage) (S.160, S.161,\n\
@@ -206,8 +209,20 @@ class TestPairtree(unittest.TestCase):
                     'sp', 'la', 'ys', '^2', '0l', 'es', 's^', '0a', '^2', '0s',
                     'ho', 'wy', '^2', '0v', 'ir', 'tu', 'os', 'it', 'y^', '20',
                     'an', 'd^', '20', 'mo', 're', '^2', '0h', 'ar', 'mo', 'ni',
-                    'c^', '20', 'ex', 'pe', 'ri', 'me', 'nt', 'at', 'io', 'n,'],                   
+                    'c^', '20', 'ex', 'pe', 'ri', 'me', 'nt', 'at', 'io', 'n,', 'obj'],                   
                    'very long id with apostrophes and UTF-8 chars')
+
+    def test_id_to_url_simple(self):
+        desired_url = "file://%s/pairtree_root/fo/o/obj/bar.txt" % PAIRTREE_STORAGE_DIR
+        test_url = self.pairtree.get_url("foo", "bar.txt")
+        self.assertEquals(desired_url, test_url)
+
+
+    def test_id_to_url_withpath(self):
+        desired_url = "file://%s/pairtree_root/fo/o/obj/data/subdir/bar.txt" % PAIRTREE_STORAGE_DIR
+        test_url = self.pairtree.get_url("foo", "bar.txt", path="data/subdir")
+        self.assertEquals(desired_url, test_url)
+
 
 if __name__ == '__main__':
     unittest.main()

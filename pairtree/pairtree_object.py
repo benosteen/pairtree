@@ -115,7 +115,10 @@ class PairtreeStorageObject(object):
         @type fs_store_client: L{PairtreeStorageClient}
         """
         self.fs = fs_store_client
-        self.id = id
+        if id.startswith(self.fs.uri_base):
+            self.id = id[len(self.fs.uri_base):]
+        else:
+            self.id = id
         self.uri = "%s%s" % (self.fs.uri_base, id)
 
     def add_bytestream(self, filename, bytestream, path=None, buffer_size=None):

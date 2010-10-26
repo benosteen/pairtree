@@ -29,6 +29,8 @@ import string
 
 import re
 
+import random
+
 from storage_exceptions import *
 
 from pairtree_object import PairtreeStorageObject
@@ -95,6 +97,11 @@ class PairtreeStorageClient(object):
 
     def __hex2char(self, m):
         return ppath.hex2char(m)
+
+    def _rm_uribase(self, id):
+        if id.startswith(self.uri_base):
+            return id[len(self.uri_base):]
+        return id
 
     def id_encode(self, id):
         """
@@ -198,8 +205,9 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: A directory path to the object's root directory
         """
+        
 #        return os.sep.join(self._id_to_dir_list(id))
-        return ppath.id_to_dirpath(id, self.pairtree_root, self.shorty_length)
+        return ppath.id_to_dirpath(self._rm_uribase(id), self.pairtree_root, self.shorty_length)
 
     def _id_to_dir_list(self, id):
         """
@@ -218,7 +226,7 @@ class PairtreeStorageClient(object):
 #            dirpath.append(enc_id[:self.shorty_length])
 #            enc_id = enc_id[self.shorty_length:]
 #        return dirpath
-        return ppath.id_to_dir_list(id, self.pairtree_root, self.shorty_length)
+        return ppath.id_to_dir_list(self._rm_uribase(id), self.pairtree_root, self.shorty_length)
         
     def _init_store(self):
         """
@@ -312,6 +320,7 @@ class PairtreeStorageClient(object):
         @type id: identifier
         @returns: L{PairtreeStorageObject}
         """
+        id = self._rm_uribase(id)
         dirpath = os.path.join(self._id_to_dirpath(id))
         if not os.path.exists(dirpath):
             os.makedirs(dirpath)
@@ -392,7 +401,7 @@ class PairtreeStorageClient(object):
         else:
             return False
 
-    def put_stream(self, id, path, stream_name, bytestream, buffer_size = 1024 * 8):
+    def put_stream(self, id, path, stream_name, bytestream, buffer_size = 1024 * 64):
         """
         Store a stream of bytes into a file within a pairtree object.
 
@@ -429,7 +438,7 @@ class PairtreeStorageClient(object):
                 except:
                     pass
                 if not buffer_size:
-                    buffer_size = 1024 * 8
+                    buffer_size = 1024 * 64
                 chunk = bytestream.read(buffer_size)
                 while chunk:
                     f.write(chunk)
@@ -486,7 +495,7 @@ class PairtreeStorageClient(object):
         file_path = stream_name
         if path:
             file_path = os.path.join(path, stream_name)
-        url_prefix = ppath.id_to_url(id, self.pairtree_root, self.shorty_length)
+        url_prefix = ppath.id_to_url(self._rm_uribase(id), self.pairtree_root, self.shorty_length)
         return os.sep.join((url_prefix, file_path))
 
     def get_stream(self, id, path, stream_name, streamable=False):
@@ -657,7 +666,10 @@ class PairtreeStorageClient(object):
         if not id:
             id = self._get_new_id()
             return self._create(id)
-        elif self.exists(id):
+        
+        id = self._rm_uribase(id)
+             
+        if self.exists(id):
             return PairtreeStorageObject(id, self)
         elif create_if_doesnt_exist:
             return self._create(id)

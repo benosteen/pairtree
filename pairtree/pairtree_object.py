@@ -211,12 +211,9 @@ class PairtreeStorageObject(object):
 
     def add_directory(self, from_file_location):
         """
-        Adds a directory from a given location.
-        
-        If no new filename is set, it will use the original filename
-        
-        
-        @param from_file_location: File path to read the file from
+        Adds a directory tree from a given location.
+                
+        @param from_file_location: Path to read the directory tree from
         @type from_file_location: Directory path
         """
         if os.path.exists(from_file_location):

@@ -8,15 +8,9 @@ from os.path import join as j
 
 from os import sep
 
-import logging
-
-from pairtree import id_encode, id_decode, logger
+from pairtree import id_encode, id_decode
 
 from StringIO import StringIO
-
-# quieten the logger
-logger = logger
-logger.setLevel(logging.ERROR)
 
 def _option_parser():
     parser = optparse.OptionParser()

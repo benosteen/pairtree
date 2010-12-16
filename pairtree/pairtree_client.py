@@ -378,6 +378,21 @@ class PairtreeStorageClient(object):
             return os.path.isdir(dirpath)
         except OSError:
             return False
+    
+    def stat(self, id, filepath):
+        """
+        Returns the os.stat for a given file, or False if the file doesn't exist
+        
+        @param id: id of the object
+        @type id: string
+        @param filepath: Path to be tested
+        @type filepath: Directory path
+        @returns L{posix.stat_result} or False
+        """
+        if self.isfile(id, filepath):
+            return os.stat(os.path.join(self._id_to_dirpath(id), filepath))
+        else:
+            return False
 
     def put_stream(self, id, path, stream_name, bytestream, buffer_size = 1024 * 8):
         """
@@ -410,6 +425,11 @@ class PairtreeStorageClient(object):
         try:
             # Stream file-like objects in with buffered reads
             if hasattr(bytestream, 'read'):
+                try:
+                    # try to get the stream back to zero
+                    bytestream.seek(0)
+                except:
+                    pass
                 if not buffer_size:
                     buffer_size = 1024 * 8
                 chunk = bytestream.read(buffer_size)
@@ -422,15 +442,15 @@ class PairtreeStorageClient(object):
                 f.write(bytestream)
                 if self.hashing_type != None:
                     hash_gen.update(bytestream)
-        finally:
-            f.close()
-        
+        except Exception, e:
+            logger.info("put_stream failed: %s" % e)
+        f.close()
         if self.hashing_type != None:
-            return (self.hashing_type, hash_gen.hexdigest())
+            return {"checksum":hash_gen.hexdigest(), "type":self.hashing_type}
 
     def get_appendable_stream(self, id, path, stream_name):
         """
-        Reads a filehandle for a pairtree object. This is a "wb+" opened file and
+        Reads a filehandle for a pairtree object. This is a "ab+" opened file and
         so can be appended to and obeys 'seek'
         
         >>> with store.get_appendable_stream('foobar:1','data/images', 'image001.tif') as stream:
@@ -450,7 +470,7 @@ class PairtreeStorageClient(object):
         file_path = os.path.join(self._id_to_dirpath(id), stream_name)
         if path:
             file_path = os.path.join(self._id_to_dirpath(id), path, stream_name)
-        f = open(file_path, "wb+")
+        f = open(file_path, "ab+")
         return f
 
     def get_stream(self, id, path, stream_name, streamable=False):
@@ -507,9 +527,10 @@ class PairtreeStorageClient(object):
             raise PartNotFoundException(id=id, path=path, stream_name=stream_name,file_path=file_path)
         if os.path.isdir(file_path):
             os.rmdir(file_path)
+            isdir = True
         else:
             os.remove(file_path)
-
+             
     def del_path(self, id, path, recursive=False):
         """
         Delete a subpath from an object, and can do so recursively (optional)
@@ -534,7 +555,7 @@ class PairtreeStorageClient(object):
                 os.rmdir(dirpath)
             elif recursive:
                 for item in deletable_parts:
-                    if os.path.isdir(item):
+                    if os.path.isdir(os.path.join(dirpath, item)):
                         shutil.rmtree(os.path.join(dirpath, item))
                     else:
                         os.remove(os.path.join(dirpath, item))
@@ -543,6 +564,7 @@ class PairtreeStorageClient(object):
             elif len(deletable_parts) == 0:
                 # Directory not physically empty, but empty of parts
                 pass
+
             else:
                 raise PathIsNotEmptyException
 

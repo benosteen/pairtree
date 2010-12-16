@@ -107,7 +107,7 @@ class PairtreeStorageObject(object):
     >>> print bar.get_bytestream('foo.txt')
     can be any sequence of bytes
     """
-    def __init__(self, id, fs_store_client):
+    def __init__(self, id, fs_store_client, location=None):
         """
         @param id: Identifier for pairtree object
         @type id: identifier
@@ -117,6 +117,7 @@ class PairtreeStorageObject(object):
         self.fs = fs_store_client
         self.id = id
         self.uri = "%s%s" % (self.fs.uri_base, id)
+        self.location = location
 
     def add_bytestream(self, filename, bytestream, path=None, buffer_size=None):
         """
@@ -208,6 +209,21 @@ class PairtreeStorageObject(object):
         path, filename = os.path.split(filepath)
         return self.get_bytestream(filename, streamable, path, appendable)
 
+    def add_directory(self, from_file_location):
+        """
+        Adds a directory from a given location.
+        
+        If no new filename is set, it will use the original filename
+        
+        
+        @param from_file_location: File path to read the file from
+        @type from_file_location: Directory path
+        """
+        if os.path.exists(from_file_location):
+            shutil.copytree(from_file_location, os.path.join(self.location, "obj"))
+        else:
+            raise FileNotFoundException
+
     def add_file(self, from_file_location, path=None, new_filename=None, buffer_size=None):
         """
         Adds a file from a given location. Currently, the copy is due via python buffering
@@ -222,7 +238,7 @@ class PairtreeStorageObject(object):
         @type from_file_location: Directory path
         @param path: (Optional) subdirectory within object to store file in
         @type path: Directory path
-        @param new_filename: Name of the file to write to
+        @param new_filename: (Optional) Name of the file to write to
         @type new_filename: filename
         @param buffer_size: (Optional) Used for streaming filelike objects - defines the size of the buffer
         to read in each cycle.

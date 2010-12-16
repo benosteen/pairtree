@@ -320,7 +320,7 @@ class PairtreeStorageClient(object):
             os.makedirs(dirpath)
         else:
             raise ObjectAlreadyExistsException
-        return PairtreeStorageObject(id, self)
+        return PairtreeStorageObject(id, self, dirpath)
 
     def list_parts(self, id, path=None):
         """

@@ -10,13 +10,10 @@ This is a convenience object, used as a proxy for an object inside a pairtree st
 As such, it shouldn't be instanciated directly.
 """
 
-import os, sys, shutil
-
-import codecs
-
-import string
-
+import os
 from storage_exceptions import *
+import myutils
+
 
 class PairtreeStorageObject(object):
     """
@@ -217,8 +214,7 @@ class PairtreeStorageObject(object):
         @type from_file_location: Directory path
         """
         if os.path.exists(from_file_location):
-            self.location = os.path.join(self.location, "obj")
-            shutil.copytree(from_file_location, self.location)
+            myutils.copytree(from_file_location, self.location)
         else:
             raise FileNotFoundException
 

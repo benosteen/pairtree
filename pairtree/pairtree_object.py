@@ -217,7 +217,7 @@ class PairtreeStorageObject(object):
         @type from_file_location: Directory path
         """
         if os.path.exists(from_file_location):
-            self.location = os.path.join(self.location, "obj")
+            #self.location = os.path.join(self.location, "obj")
             shutil.copytree(from_file_location, self.location)
         else:
             raise FileNotFoundException

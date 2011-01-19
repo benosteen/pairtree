@@ -27,6 +27,8 @@ import codecs
 
 import string
 
+import random
+
 import re
 
 from storage_exceptions import *

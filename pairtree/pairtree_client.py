@@ -39,6 +39,12 @@ import pairtree_path as ppath
 
 import hashlib
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger('pairtreeclient')
+
 class PairtreeStorageClient(object):
     """A client that oversees the implementation of the Pairtree FS specification
     version 0.1.

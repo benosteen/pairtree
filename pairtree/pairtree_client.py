@@ -27,6 +27,8 @@ import codecs
 
 import string
 
+import random
+
 import re
 
 from storage_exceptions import *
@@ -36,6 +38,12 @@ from pairtree_object import PairtreeStorageObject
 import pairtree_path as ppath
 
 import hashlib
+
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger('pairtreeclient')
 
 class PairtreeStorageClient(object):
     """A client that oversees the implementation of the Pairtree FS specification
@@ -320,7 +328,7 @@ class PairtreeStorageClient(object):
             os.makedirs(dirpath)
         else:
             raise ObjectAlreadyExistsException
-        return PairtreeStorageObject(id, self)
+        return PairtreeStorageObject(id, self, dirpath)
 
     def list_parts(self, id, path=None):
         """

@@ -29,7 +29,7 @@ import string
 
 import re
 
-from storage_exceptions import *
+from .storage_exceptions import *
 
 import logging
 
@@ -94,7 +94,7 @@ def id_encode(id):
     @returns: A string of the encoded identifier
     """
     # Unicode or bust
-    if isinstance(id, unicode):
+    if isinstance(id, str):
         # assume utf-8
         # TODO - not assume encoding
         id = id.encode('utf-8')

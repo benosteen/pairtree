@@ -39,11 +39,11 @@ This was created to avoid certain race conditions I had with a pickled dictionar
 A sqllite or similar lookup would also be effective, but this one relies solely on pairtree.
 """
 
-from __future__ import with_statement
+
 
 import os
 
-from pairtree_path import id_encode, id_decode, get_id_from_dirpath, get_path_from_dirpath, id_to_dirpath
+from .pairtree_path import id_encode, id_decode, get_id_from_dirpath, get_path_from_dirpath, id_to_dirpath
 
 PAIRTREE_RL = "pairtree_rl"
 

@@ -133,14 +133,14 @@ class TestPairtree(unittest.TestCase):
         self.roundtrip('asdfghjklpoiuytrewqxcvbnm1234567890:;/', 'Basic Roundtrip')
 
     def test_french_roundtrip(self):
-        self.roundtrip(u'Années de Pèlerinage', 'French Unicode roundtrip')
+        self.roundtrip('Années de Pèlerinage', 'French Unicode roundtrip')
 
     def test_japanese_rountrip(self):
-        self.roundtrip(u'ウインカリッスの日本語', 'Japanese Unicode roundtrip')
+        self.roundtrip('ウインカリッスの日本語', 'Japanese Unicode roundtrip')
         
     def test_hardcore_unicode_rountrip(self):
         # If this works...
-        self.roundtrip(u"""   1. Euro Symbol: €.
+        self.roundtrip("""   1. Euro Symbol: €.
    2. Greek: Μπορώ να φάω σπασμένα γυαλιά χωρίς να πάθω τίποτα.
    3. Íslenska / Icelandic: Ég get etið gler án þess að meiða mig.
    4. Polish: Mogę jeść szkło, i mi nie szkodzi.

@@ -10,7 +10,7 @@ from os import sep
 
 from pairtree import id_encode, id_decode
 
-from StringIO import StringIO
+from io import StringIO
 
 def _option_parser():
     parser = optparse.OptionParser()
@@ -46,7 +46,7 @@ if __name__ == '__main__':
             encodedid = encodedid[2:]
         if path:
             filepath.append(path)
-        print j(*filepath)
+        print(j(*filepath))
     elif cmd == 'toid':
         if len(args) == 1:
             sys.exit("Need to pass a filepath to this command")
@@ -77,10 +77,10 @@ if __name__ == '__main__':
         remnants = tokens[index:]
         if remnants:
             ident = j(ident, *remnants)
-        print ident
+        print(ident)
     elif cmd == 'help' or cmd == "":
-        print "ppath topath [id] - converts an id or id/subpath into a pairtree directory path"
-        print "ppath toid [path] - converts a filepath into an id or id/subpath"
+        print("ppath topath [id] - converts an id or id/subpath into a pairtree directory path")
+        print("ppath toid [path] - converts a filepath into an id or id/subpath")
     elif len(args) == 1:
         # Assume topath - eg ppath foo:1 -> reads as -> ppath topath foo:1
         frags = args[0].split(sep, 1)
@@ -96,9 +96,9 @@ if __name__ == '__main__':
             encodedid = encodedid[2:]
         if path:
             filepath.append(path)
-        print j(*filepath)
+        print(j(*filepath))
     else:
-        print "unknown command: %s" % cmd
-        print "ppath topath [id] - converts an id or id/subpath into a pairtree directory path"
-        print "ppath toid [path] - converts a filepath into an id or id/subpath"
+        print("unknown command: %s" % cmd)
+        print("ppath topath [id] - converts an id or id/subpath into a pairtree directory path")
+        print("ppath toid [path] - converts a filepath into an id or id/subpath")
 

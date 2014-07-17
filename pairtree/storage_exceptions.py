@@ -11,7 +11,7 @@ class PartNotFoundException(Exception):
     def __init__(self, *p, **kw):
         self.context = (p, kw)
     def __str__(self):
-        print " - Part not found: %s" % self.context
+        print(" - Part not found: %s" % self.context)
 
 class StoreNotFoundException(Exception):
     """Store not found"""

@@ -23,7 +23,7 @@ I{http://example.org/ark:/123}
 
 import os, sys, shutil
 
-import codecs
+import binascii
 
 import string
 
@@ -37,14 +37,68 @@ logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger('pairtreepath')
 
-encode_regex = re.compile(r"[\"*+,<=>?\\^|]|[^\x21-\x7e]", re.U)
-decode_regex = re.compile(r"\^(..)", re.U)
 
-def char2hex(m):
-        return "^%02x"%ord(m.group(0))
+PASS1_MATCHES = ['"', '*', '+', ",", '<', '=', '>', '?', '\\', '^', '|']
+PASS2_MAP = str.maketrans('/:.', '=+,')
+REV_PASS2_MAP = str.maketrans('=+,', '/:.')
 
-def hex2char(m):
-        return chr(int(m.group(1), 16))
+def first_pass(id):
+    clean = []
+    for char in id:
+        if char in PASS1_MATCHES or ord(char) < 33:
+            clean.append(ascii2hex(char))
+        elif ord(char) > 126:
+            clean.append(uni2hex(char))
+        else:
+            clean.append(char)
+    return "".join(clean)
+
+def second_pass(id):
+    return id.translate(PASS2_MAP)
+
+def ascii2hex(char):
+    return "^%02x" % ord(char)
+
+def uni2hex(char):
+    char = char.encode('utf-8')
+    return str(char)[2:-1].replace('\\x', '^')
+
+
+def reverse_second_pass(id):
+    return id.translate(REV_PASS2_MAP)
+
+def reverse_first_pass(id):
+    i = 0
+    new_id = []
+    while i < len(id):
+        if id[i] == '^':
+            hexcode = id[i+1:i+3]
+            if int(hexcode, 16) < 127:
+                new_id.append(hex2ascii(hexcode))
+                i += 3
+            else:
+                nb = 2 # number of bytes
+                while True:
+                    hexcode = id[i:i+nb*3]
+                    try:
+                        new_id.append(hex2uni(hexcode))
+                        i += nb*3
+                        break
+                    except UnicodeDecodeError:
+                        nb += 1
+                        if nb > 6:
+                            raise
+        else:
+            new_id.append(id[i])
+            i += 1
+    return "".join(new_id)
+
+def hex2ascii(code):
+    return chr(int(code, 16))
+
+def hex2uni(code):
+    code = code.replace('^', '')
+    return binascii.unhexlify(code).decode('utf-8')
 
 
 def id_encode(id):
@@ -93,25 +147,8 @@ def id_encode(id):
     @type id: identifier
     @returns: A string of the encoded identifier
     """
-    # Unicode or bust
-    if isinstance(id, str):
-        # assume utf-8
-        # TODO - not assume encoding
-        id = id.encode('utf-8')
-
-    second_pass_m = {'/':'=',
-                        ':':'+',
-                        '.':','
-                    }
-    # hexify the odd characters
-    # Using Erik Hetzner's regex in place of my previous hack
-    new_id = encode_regex.sub(char2hex, id)
-    
-    # 2nd pass
-    second_pass = []
-    for char in new_id:
-        second_pass.append(second_pass_m.get(char, char))
-    return "".join(second_pass)
+    id = first_pass(id)
+    return second_pass(id)
 
 def id_decode(id):
     """
@@ -121,20 +158,8 @@ def id_decode(id):
     @type id: identifier
     @returns: A string of the decoded identifier
     """
-    second_pass_m = {'=':'/',
-                        '+':':',
-                        ',':'.'
-                    }
-    second_pass = []
-    for char in id:
-        second_pass.append(second_pass_m.get(char, char))
-    dec_id = "".join(second_pass)
-    #dec_id = id.translate(string.maketrans(u'=+,',u'/:.'))
-    # Using Erik Hetzner's regex in place of my previous hack
-    #ppath_s = re.sub(r"\^(..)", self.__hex2char, dec_id)
-    ppath_s = decode_regex.sub(hex2char, dec_id)
-    # Again, drop the assumption of utf-8
-    return ppath_s.decode('utf-8')
+    id = reverse_second_pass(id)
+    return reverse_first_pass(id)
 
 
 def get_id_from_dirpath(dirpath, pairtree_root=""):

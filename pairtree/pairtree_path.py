@@ -68,37 +68,40 @@ def reverse_second_pass(id):
     return id.translate(REV_PASS2_MAP)
 
 def reverse_first_pass(id):
-    i = 0
+    index = 0
     new_id = []
-    while i < len(id):
-        if id[i] == '^':
-            hexcode = id[i+1:i+3]
+    while index < len(id):
+        numchar = 1 # number of characters to read
+        if id[index] == '^':
+            hexcode = get_hexcode(id, index, numchar)
             if int(hexcode, 16) < 127:
                 new_id.append(hex2ascii(hexcode))
-                i += 3
+                index += 3
             else:
-                nb = 2 # number of bytes
                 while True:
-                    hexcode = id[i:i+nb*3]
+                    numchar += 1
+                    hexcode = get_hexcode(id, index, numchar)
                     try:
                         new_id.append(hex2uni(hexcode))
-                        i += nb*3
+                        index += numchar*3
                         break
                     except UnicodeDecodeError:
-                        nb += 1
-                        if nb > 6:
+                        if numchar == 6:
                             raise
         else:
-            new_id.append(id[i])
-            i += 1
+            new_id.append(id[index])
+            index += 1
     return "".join(new_id)
+
+def get_hexcode(id, start, numchar):
+    hexcode = id[start: start+numchar*3]
+    return hexcode.replace('^', '')
 
 def hex2ascii(code):
     return chr(int(code, 16))
 
-def hex2uni(code):
-    code = code.replace('^', '')
-    return binascii.unhexlify(code).decode('utf-8')
+def hex2uni(codes):
+    return binascii.unhexlify(codes).decode('utf-8')
 
 
 def id_encode(id):

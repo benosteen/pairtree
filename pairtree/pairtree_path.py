@@ -25,8 +25,6 @@ import os, sys, shutil
 
 import binascii
 
-import string
-
 import re
 
 from .storage_exceptions import *
@@ -39,8 +37,15 @@ logger = logging.getLogger('pairtreepath')
 
 
 PASS1_MATCHES = ['"', '*', '+', ",", '<', '=', '>', '?', '\\', '^', '|']
-PASS2_MAP = str.maketrans('/:.', '=+,')
-REV_PASS2_MAP = str.maketrans('=+,', '/:.')
+if sys.version_info.major >= 3:
+    # for Python 3
+    PASS2_MAP = str.maketrans('/:.', '=+,')
+    REV_PASS2_MAP = str.maketrans('=+,', '/:.')
+else:
+    # for Python 2
+    import string
+    PASS2_MAP = string.maketrans('/:.', '=+,')
+    REV_PASS2_MAP = string.maketrans('=+,', '/:.')
 
 def first_pass(id):
     clean = []
@@ -60,8 +65,14 @@ def ascii2hex(char):
     return "^%02x" % ord(char)
 
 def uni2hex(char):
-    char = char.encode('utf-8')
-    return str(char)[2:-1].replace('\\x', '^')
+    if sys.version_info.major >= 3:
+        # for Python3
+        codes = char.encode('utf-8')
+        return str(codes)[2:-1].replace('\\x', '^')
+    else:
+        # for Python2
+        codes = ["^%02x" % ord(c) for c in char]
+        return "".join(codes)
 
 
 def reverse_second_pass(id):
@@ -101,8 +112,14 @@ def hex2ascii(code):
     return chr(int(code, 16))
 
 def hex2uni(codes):
-    return binascii.unhexlify(codes).decode('utf-8')
-
+    codes = binascii.unhexlify(codes)
+    uni =  codes.decode('utf-8')
+    if sys.version_info.major >= 3:
+        # for Python3
+        return uni
+    else:
+        # for Python 2
+        return codes
 
 def id_encode(id):
     """

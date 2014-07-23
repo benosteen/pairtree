@@ -37,6 +37,7 @@ logger = logging.getLogger('pairtreepath')
 
 
 PASS1_MATCHES = ['"', '*', '+', ",", '<', '=', '>', '?', '\\', '^', '|']
+
 if sys.version_info.major >= 3:
     # for Python 3
     PASS2_MAP = str.maketrans('/:.', '=+,')
@@ -48,6 +49,15 @@ else:
     REV_PASS2_MAP = string.maketrans('=+,', '/:.')
 
 def first_pass(id):
+    """
+    As specified in id_encode() notes, this method reads through the id and
+    pulls out all unicode chcracters and a few special ASCII characters. It passes
+    those characters to helper methods for conversion and passes back the cleaned id.
+
+    @param id: original identifier to decode
+    @type id: identifier
+    @returns: Partially pairtree encoded id (hex in place of unicode & special ASCII)
+    """
     clean = []
     for char in id:
         if char in PASS1_MATCHES or ord(char) < 33:
@@ -59,12 +69,35 @@ def first_pass(id):
     return "".join(clean)
 
 def second_pass(id):
+    """
+    Converts 3 special ASCII chars to different ASCII chars
+        / -> =
+        : -> +
+        . -> ,
+    @param id: partially pairtree encoded identifier (already run thru first_pass())
+    @type id: identifier
+    @returns: fully pairtree encoded identifier (sans slash, colon, and period)
+    """
     return id.translate(PASS2_MAP)
 
 def ascii2hex(char):
+    """
+    Converts ASCII character to its two digit hex value prepended by caret ^
+        ex:  "*" --> "^2a"
+    @param char: a single ASCII character
+    @type char: chr
+    @returns: a pair of hex digits in a string, prepended with a caret: ^
+    """
     return "^%02x" % ord(char)
 
 def uni2hex(char):
+    """
+    Converts unicode to hex pairs, each prepended by a caret ^
+        Ex: "ウ" --> "^e3^82^a6"
+    @param char: unicode to convert
+    @type char: unicode
+    @returns: a string of hex digit pairs, each prepended with caret ^
+    """
     if sys.version_info.major >= 3:
         # for Python3
         codes = char.encode('utf-8')
@@ -76,42 +109,95 @@ def uni2hex(char):
 
 
 def reverse_second_pass(id):
+    """
+    Reverses conversion of second_pass() method
+        = -> /
+        + -> :
+        , -> .
+    @param id: pairtree encoded identifier
+    @type id: identifier
+    @returns: partially pairtree encoded identifier (puts back slash, colon, and period)
+    """
     return id.translate(REV_PASS2_MAP)
 
 def reverse_first_pass(id):
+    """
+    Reverses conversion of first_pass() method
+    @param id: partially encoded pairtree identifier (already run thru reverse_second_pass())
+    @type id: identifier
+    @returns: original identifier
+    """
     index = 0
     new_id = []
     while index < len(id):
-        numchar = 1 # number of characters to read
         if id[index] == '^':
-            hexcode = get_hexcode(id, index, numchar)
+            # found hex pair marker
+            num_hex_pairs = 1 
+            hexcode = get_hexcode(id, index, num_hex_pairs)
             if int(hexcode, 16) < 127:
+                # its ASCII; convert and advance index by 3; ex: "^2a"
                 new_id.append(hex2ascii(hexcode))
                 index += 3
             else:
+                # if unicode, try to decode. If error, keep adding hex pairs until it works
+                # then advance index by number of pairs * 3; ex: "^e3^82^a6" --> advance by 9
                 while True:
-                    numchar += 1
-                    hexcode = get_hexcode(id, index, numchar)
+                    num_hex_pairs += 1
+                    hexcode = get_hexcode(id, index, num_hex_pairs)
                     try:
                         new_id.append(hex2uni(hexcode))
-                        index += numchar*3
+                        index += num_hex_pairs*3
                         break
                     except UnicodeDecodeError:
-                        if numchar == 6:
+                        if num_hex_pairs == 6:
                             raise
         else:
+            # simple ASCII; just pass it through untouched, and advance index by 1
             new_id.append(id[index])
             index += 1
     return "".join(new_id)
 
-def get_hexcode(id, start, numchar):
-    hexcode = id[start: start+numchar*3]
+def get_hexcode(id, start, numpairs):
+    """
+    Retrieves paired hex values from "id" at position of "start" variable
+    Uses "numpairs" to determine how many hex values to pull
+    For instance the asterisk (*) character is only one pair of hex values: 2a
+    But the Japanese symbol (ウ) has three pairs: e382a6
+    Method also removes the Pairtree hex indicator symbol (^)
+
+    @param id: identifier to extract from
+    @type id: identifier
+    @param start: index of id to begin extraction of hex code
+    @type start: int
+    @param numpairs: number of hex pairs to extract together to construct a character
+    @type numpairs: int
+    @returns: a string of hex pairs
+    """
+    hexcode = id[start: start+numpairs*3]
     return hexcode.replace('^', '')
 
 def hex2ascii(code):
+    """
+    Converts a single hex pair to its ASCII character
+    @param code: a single hex value pair
+    @type code: string
+    @returns: ascii character representesd by the hexcode
+    """
     return chr(int(code, 16))
 
 def hex2uni(codes):
+    """
+    Converts multiple hex value pairs to a unicode character, if possible
+    For Python3, this method decodes the values and returns unicode.
+        If codes == "e382a6" the return value is "ウ"
+    For Python2, it does not return the decoded the values
+        If codes == "e382a6" the return value is "\xe3\x82\xa6"
+        However, for Python2 it still attempts to decode the values to ensure the calling
+        method (reverse_second_pass) has passed the appropriate chunk of hex values
+    @param codes: a string of multiple hex value pairs
+    @type codes: string
+    @returns: string of unicode
+    """
     codes = binascii.unhexlify(codes)
     uni =  codes.decode('utf-8')
     if sys.version_info.major >= 3:

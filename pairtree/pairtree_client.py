@@ -31,11 +31,11 @@ import random
 
 import re
 
-from storage_exceptions import *
+from .storage_exceptions import *
 
-from pairtree_object import PairtreeStorageObject
+from .pairtree_object import PairtreeStorageObject
 
-import pairtree_path as ppath
+from . import pairtree_path as ppath
 
 import hashlib
 
@@ -450,7 +450,7 @@ class PairtreeStorageClient(object):
                 f.write(bytestream)
                 if self.hashing_type != None:
                     hash_gen.update(bytestream)
-        except Exception, e:
+        except Exception as e:
             logger.info("put_stream failed: %s" % e)
         f.close()
         if self.hashing_type != None:

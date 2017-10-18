@@ -133,14 +133,14 @@ class TestPairtree(unittest.TestCase):
         self.roundtrip('asdfghjklpoiuytrewqxcvbnm1234567890:;/', 'Basic Roundtrip')
 
     def test_french_roundtrip(self):
-        self.roundtrip('Années de Pèlerinage', 'French Unicode roundtrip')
+        self.roundtrip(u'Années de Pèlerinage', 'French Unicode roundtrip')
 
     def test_japanese_rountrip(self):
-        self.roundtrip('ウインカリッスの日本語', 'Japanese Unicode roundtrip')
+        self.roundtrip(u'ウインカリッスの日本語', 'Japanese Unicode roundtrip')
         
     def test_hardcore_unicode_rountrip(self):
         # If this works...
-        self.roundtrip("""   1. Euro Symbol: €.
+        self.roundtrip(u"""   1. Euro Symbol: €.
    2. Greek: Μπορώ να φάω σπασμένα γυαλιά χωρίς να πάθω τίποτα.
    3. Íslenska / Icelandic: Ég get etið gler án þess að meiða mig.
    4. Polish: Mogę jeść szkło, i mi nie szkodzi.
@@ -157,12 +157,12 @@ class TestPairtree(unittest.TestCase):
                         "hardcore unicode test - roundtrip")
 
     def test_french(self):
-        self.i2p2i('Années de Pèlerinage',
+        self.i2p2i(u'Années de Pèlerinage',
                    ['An', 'n^', 'c3', '^a', '9e', 's^', '20', 'de', '^2', '0P',
                     '^c', '3^', 'a8', 'le', 'ri', 'na', 'ge'],
                    'UTF-8 chars')
 
-        self.i2p2i("Années de Pèlerinage (Years of Pilgrimage) (S.160, S.161,\n\
+        self.i2p2i(u"Années de Pèlerinage (Years of Pilgrimage) (S.160, S.161,\n\
  S.163) is a set of three suites by Franz Liszt for solo piano. Liszt's\n\
  complete musical style is evident in this masterwork, which ranges from\n\
  virtuosic fireworks to sincerely moving emotional statements. His musical\n\

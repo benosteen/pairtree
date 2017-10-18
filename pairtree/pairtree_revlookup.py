@@ -43,7 +43,7 @@ A sqllite or similar lookup would also be effective, but this one relies solely 
 
 import os
 
-from .pairtree_path import id_encode, id_decode, get_id_from_dirpath, get_path_from_dirpath, id_to_dirpath
+from pairtree.pairtree_path import id_encode, id_decode, id_to_dirpath
 
 PAIRTREE_RL = "pairtree_rl"
 

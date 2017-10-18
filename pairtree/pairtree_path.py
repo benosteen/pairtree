@@ -21,13 +21,9 @@ I{http://example.org/ark:/123}
 
 """
 
-import os, sys, shutil
+import os, sys
 
 import binascii
-
-import re
-
-from .storage_exceptions import *
 
 import logging
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import random, unittest, re
+import unittest
 from pairtree import PairtreeStorageClient
 
 from pairtree import ppath

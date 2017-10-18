@@ -24,7 +24,7 @@ I{http://example.org/ark:/123}
 
 """
 
-from .pairtree_client import PairtreeStorageClient
+from pairtree.pairtree_client import PairtreeStorageClient
 
 class PairtreeStorageFactory(object):
 

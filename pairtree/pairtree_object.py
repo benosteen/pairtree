@@ -11,8 +11,8 @@ As such, it shouldn't be instanciated directly.
 """
 
 import os
-from .storage_exceptions import *
-from . import myutils
+from pairtree.storage_exceptions import *
+from pairtree import myutils
 
 
 class PairtreeStorageObject(object):

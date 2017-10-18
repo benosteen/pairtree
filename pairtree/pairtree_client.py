@@ -21,21 +21,17 @@ I{http://example.org/ark:/123}
 
 """
 
-import os, sys, shutil
-
-import codecs
-
-import string
+import os, shutil
 
 import random
 
 import re
 
-from .storage_exceptions import *
+from pairtree.storage_exceptions import *
 
-from .pairtree_object import PairtreeStorageObject
+from pairtree.pairtree_object import PairtreeStorageObject
 
-from . import pairtree_path as ppath
+from pairtree import pairtree_path as ppath
 
 import hashlib
 

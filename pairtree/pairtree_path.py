@@ -249,6 +249,12 @@ def id_encode(id):
     @type id: identifier
     @returns: A string of the encoded identifier
     """
+    # Unicode or bust
+    if sys.version_info.major < 3 and isinstance(id, unicode):
+        # assume utf-8
+        # TODO - not assume encoding
+        id = id.encode('utf-8')
+
     id = first_pass(id)
     return second_pass(id)
 
@@ -261,8 +267,11 @@ def id_decode(id):
     @returns: A string of the decoded identifier
     """
     id = reverse_second_pass(id)
-    return reverse_first_pass(id)
-
+    id = reverse_first_pass(id)
+    if sys.version_info.major < 3:
+        # TODO - not assume encoding
+        id = id.decode('utf-8')
+    return id
 
 def get_id_from_dirpath(dirpath, pairtree_root=""):
     """
